@@ -102,7 +102,7 @@ public class DAO {
 
 		item.setId(rs.getString(columnNames[0]));
 		for (int i = 1; i<columnNames.length; i ++)
-			item.setField(i, rs.getString(columnNames[i]));		
+			item.setField(i, rs.getString(columnNames[i]));	 	
 
 	}
 
