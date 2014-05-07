@@ -1,5 +1,7 @@
 package dao;
 
+import javax.swing.JPanel;
+
 class T1{
 	static int i;
 	int getI(){
@@ -15,11 +17,11 @@ class T2 extends T1{
 public class Test {
 
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-		new T1();
-		System.out.println(T1.i);
+		
+		System.out.println("\\s");
 		System.out.println(T2.i);
 		System.out.println(new T1().getI());
+		JPanel g = null;
 	}
 
 }

@@ -25,11 +25,12 @@ public class Main {
 		conn.setAutoCommit(false);
 		Statement stmt = conn.createStatement();
 		ResultSet rs = stmt.executeQuery("Select * from ЙНЛОКЕЙРСЧЫХЕ");
+		final DAO dao = new DAO(conn, "йнлокейрсчыхе", "йнлок_ID");
 		EventQueue.invokeLater(new Runnable()
          {
             public void run()
             {           
-               JFrame frame = new TableViewer("йнлокейрсчыхе", "йнлок_ID", conn);
+               JFrame frame = new TableViewer(dao);
                frame.setTitle("рЕЯР рЮАКХЖШ");
                frame.setLocationByPlatform(true);
                //frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
