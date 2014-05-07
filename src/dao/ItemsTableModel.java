@@ -11,28 +11,17 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.table.AbstractTableModel;
 
 public class ItemsTableModel extends AbstractTableModel{
-	private Connection conn;
 	private List<Item> cache  = new ArrayList<>();
-	public String sqlInfoMSG = " ";
-	
+	public String sqlInfoMSG = " ";	
 	private String whereCond;
-	String[] columnNames;
-	private String tableName;
-	private String tablePK;
 	private DAO dao;
-	private Class[] columnClasses;
 	
 	
 
 	public ItemsTableModel(DAO dao,  String whereCond)  {
 		this.dao = dao;
 		this.whereCond = whereCond;
-		tableName = dao.getTableName();
-		columnNames = dao.getColumnNames();
-		columnClasses = dao.getColumnClassNames();
-		conn = dao.getConnection();
-		
-		updateCache();	
+		updateCache();		
 		
 	}
 
@@ -40,29 +29,26 @@ public class ItemsTableModel extends AbstractTableModel{
 	public void updateCache()  {
 			Statement stmt = null;
 			ResultSet rs = null;
-			String sql = "select * from " + tableName  + whereCond;
+			String sql = "select * from " + dao.getTableName()  + whereCond;
 			try{			
-				stmt = conn.createStatement();
+				stmt = dao.getConnection().createStatement();
 				rs = stmt.executeQuery(sql);
 				// очищаем кэш
 				cache.clear();
 				//выбираем данные из результирующего набора в кеш
 				while (rs.next()){
-					Item item = new Item();
-					dao.pollFieldsFromResultSet(item, rs, null);
+					Item item = new Item(null);
+					item.pollFieldsFromResultSet(rs, dao.getColumnNames());
 					cache.add(item);
 				}						
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				sqlInfoMSG = e.getMessage();
 				e.printStackTrace();
-			}
-			
-		
+			}		
 		
 		finally{try {stmt.close();
-		} catch (SQLException e) {
-			sqlInfoMSG = e.getMessage();
+		} catch (SQLException e) {	
 			e.printStackTrace();
 		}}
 	}
@@ -71,7 +57,7 @@ public class ItemsTableModel extends AbstractTableModel{
 	@Override
 	public String getColumnName(int column) {
 		// TODO Auto-generated method stub
-		return columnNames[column];
+		return dao.getColumnNames()[column];
 	}
 
 
@@ -82,24 +68,21 @@ public class ItemsTableModel extends AbstractTableModel{
 
 	@Override
 	public int getColumnCount() {
-		return columnNames.length;
+		return dao.getColumnNames().length;
 	}
 
 	@Override
 	public Object getValueAt(int rowIndex, int columnIndex) {
 		Item item = cache.get(rowIndex);
-		if (columnIndex ==0)
-			return item.getId();
-		return item.getField(columnIndex);
+		return item.getVal(columnIndex);
 	}
 	
 	/** Создает новый item и записывает его в базу. Внимание - просто записывает, значение в кеше автоматически не появляется*/
 	public void addRow(String[] record) {
-		Item item = new Item();
-		item.setId(record[0]);
-		item.setOtherCols(new Item[record.length-1]);
-		for (int i = 1; i<record.length; i++ )
-			item.setField(i, record[i]);
+		Item item = new Item(null);
+		item.setSize(record.length);
+		for (int i = 0; i<record.length; i++ )
+			item.setVal(i, record[i]);
 		
 		// добавляем в базу
 		try {
@@ -113,29 +96,29 @@ public class ItemsTableModel extends AbstractTableModel{
 	@Override
 	public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
 		Item item = cache.get(rowIndex); 
-		try{	
-			
-			if (columnIndex ==0){
-				 //item.setId(aValue);
+		try{				
+			if (columnIndex == 0){
 				 dao.changeID(item.getId(), aValue);
 				 // Сохраняем item с обновленным ID
 				 item.setId(aValue);
 			}
 			else{
-				item.setField(columnIndex, aValue);			
+				item.setVal(columnIndex, aValue);			
 				dao.store(item);
+				
 			}
 		} catch (SQLException e){	
 			sqlInfoMSG = e.getMessage();
 			e.printStackTrace();
 		}	
 		finally {
-			fireTableCellUpdated(rowIndex, columnIndex);
 			try {
-			dao.refresh(item);
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}}
+				dao.refresh(item);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			fireTableCellUpdated(rowIndex, columnIndex);
+		}
 	}
 	
 	@Override

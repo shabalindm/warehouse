@@ -15,6 +15,28 @@ public class DAO {
 	private String tablePK; // Имя первичного ключа
 	private String[] columnNames; // Имена всех столбцов в таблице
 	private Class[] columnClasses; 
+	
+	
+
+	public String getTablePK() {
+		return tablePK;
+	}
+
+	public Class[] getColumnClasses() {
+		return columnClasses;
+	}
+
+	public String[] getColumnNames() {
+		return columnNames;
+	}
+	
+	public String getTableName() {
+		return tableName;
+	}
+	
+	public Connection getConnection() {
+		return conn;
+	}
 
 	private String sqlInsert;
 	private String sqlUpdate;
@@ -109,50 +131,23 @@ public class DAO {
 		pstmChangeID = conn.prepareStatement(sqlChangeID);	
 	}
 	 
-	public String[] getColumnNames() {
-		return columnNames;
-	}
-	public Class[] getColumnClassNames() {
-		return columnClasses;
-	}
-	public String getTableName() {
-		return tableName;
-	}
-	public Connection getConnection() {
-		return conn;
-	}
-	 
-	   /**Берет  значения из текущей позиции курсора rs и заполняет ими все поля в объекте item. 
-	    * Третьим параметром идет массив с именами столбцов в результирующим наборе. Если он null, то берется ColumnNames из ДАО;
-	    ** В если типы объектов item и ДАО не соответствуют друг другу, результат не определен */
-	public void pollFieldsFromResultSet(Item item, ResultSet rs, String[] columnNames)
-			throws SQLException{
-
-		if (columnNames == null)
-			columnNames = this.columnNames;
-		if (item.getOtherCols() == null)
-			item.setOtherCols(new Item[columnNames.length - 1]);
-
-		item.setId(rs.getObject(columnNames[0]));
-		for (int i = 1; i<columnNames.length; i ++)
-			item.setField(i, rs.getObject(columnNames[i]));	 	
-
-	}
+	
 
 	/** Ищет по значению ID поле запись в базе данных и выдает новый объект item, поля которого заполнены значениями из этой записи */
-	public Item searchById(Long id) throws SQLException {		
+	public Item searchById(Object id) throws SQLException {		
 		Item result = null;		
-		pstmSearchById.setLong(1, id);
+		pstmSearchById.setObject(1, id);
 		ResultSet rs = null;
 		try{
 			rs = pstmSearchById.executeQuery();
 			if (rs.next()){
-				result = new Item();
-				pollFieldsFromResultSet(result, rs, null);
+				result = new Item(null, columnNames.length);
+				result.pollFieldsFromResultSet(rs, columnNames);
 			}
+			return result;
 		}
 		finally{rs.close();}		
-		return result;
+	
 	}
 
 		/** Обновляет значения полей объекта item, беря их из базы данных. Возвращает true если обновление прошло успешно */
@@ -162,7 +157,7 @@ public class DAO {
 		try{
 			rs = pstmSearchById.executeQuery();
 			if (rs.next()){
-				pollFieldsFromResultSet(item, rs, null);
+				item.pollFieldsFromResultSet(rs, columnNames);
 				return true;
 			}
 			return false;
@@ -181,26 +176,13 @@ public class DAO {
 	}
 	
 	
-	/** Берет значения полей из Item  связывает их с полями (плейсхолдерами) в pstmInsert или pstmUpdate. Важно, чтобы число плейсхолдеров в pstm 
-	 * равнялось количеству полей в item, а их порядок совапдал с порядком столбцов в defaultColumnNames
-	 * @throws SQLException */
-	void bindFields( Item item, PreparedStatement pstm) throws SQLException {
-		
-		for (int i = 1; i < columnNames.length ; i++)	{			
-//			System.out.print(item.getField(i).getId());
-//			try{ System.out.println(" " + item.getField(i).getId().getClass().getSimpleName());
-			if (item.getField(i) == null)
-				pstm.setObject(i, null);
-			else
-				pstm.setObject(i, item.getField(i).getId());
-		
-		pstm.setObject(columnNames.length, item.getId());}
-	}
 		
 	/**Записывает значения полей item в базу данных в виде новой строчки */
 	public void storeNew(Item item )   throws SQLException
-	{	
-		bindFields(item, pstmInsert);	
+	{			
+		for (int i = 0; i < columnNames.length ; i++)	{			
+			pstmInsert.setObject(i+1, item.getVal(i));
+		}	
 		pstmInsert.executeUpdate();
 		 
 	}
@@ -208,8 +190,10 @@ public class DAO {
 	/**Находит по значению iD запись в базе данных и переписывает в нее значения полей из  item  */
 	public int store(Item  item)   throws SQLException
 	{	
-		bindFields(item, pstmUpdate);
-		return pstmUpdate.executeUpdate();
+		for (int i = 0; i < columnNames.length ; i++)	{			
+			pstmUpdate.setObject(i+1, item.getVal(i));
+		}
+		return  pstmUpdate.executeUpdate();
 	}
 	
 	/**Меняет Id записи в базе */
@@ -235,6 +219,9 @@ public class DAO {
 			   
 			   if(pstmDelete != null)
 				   pstmDelete.close();
+			   
+			   if(pstmChangeID != null)
+				   pstmChangeID.close();
 		   }
 		   catch (SQLException e)
 		   {
