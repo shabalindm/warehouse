@@ -180,9 +180,11 @@ public class DAO {
 	/**Записывает значения полей item в базу данных в виде новой строчки */
 	public void storeNew(Item item )   throws SQLException
 	{			
-		for (int i = 0; i < columnNames.length ; i++)	{			
-			pstmInsert.setObject(i+1, item.getVal(i));
-		}	
+		for (int i = 1; i < columnNames.length ; i++)	{			
+			pstmInsert.setObject(i, item.getVal(i));			
+		}
+		pstmInsert.setObject(columnNames.length , item.getVal(0));
+		
 		pstmInsert.executeUpdate();
 		 
 	}
@@ -190,9 +192,10 @@ public class DAO {
 	/**Находит по значению iD запись в базе данных и переписывает в нее значения полей из  item  */
 	public int store(Item  item)   throws SQLException
 	{	
-		for (int i = 0; i < columnNames.length ; i++)	{			
-			pstmUpdate.setObject(i+1, item.getVal(i));
+		for (int i = 1; i < columnNames.length ; i++)	{			
+			pstmUpdate.setObject(i, item.getVal(i));			
 		}
+		pstmUpdate.setObject(columnNames.length , item.getVal(0));
 		return  pstmUpdate.executeUpdate();
 	}
 	

@@ -15,6 +15,7 @@ public class ItemsTableModel extends AbstractTableModel{
 	public String sqlInfoMSG = " ";	
 	private String whereCond;
 	private DAO dao;
+	//ptivate 
 	
 	
 

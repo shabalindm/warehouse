@@ -94,5 +94,10 @@ private int columnCount;
 		return table.get(i);
 	}
 
+
+	public String []  removeRow(int i) {
+		return table.remove(i);
+	}
+
 }
 

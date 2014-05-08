@@ -59,7 +59,7 @@ public class TableViewer extends JFrame {
 	JButton rollbackBtn;
 	JButton insertBtn; 
 	JButton deleteBtn;
-	JTextArea information = new JTextArea ();
+	InfoTextArea information = new InfoTextArea ();
 	private DAO dao;
 	
 	/**Слушатель, который следит за изменением порядка и ширины стобцов верхней таблицы и повторяет эти операции для нижней таблицы.
@@ -194,7 +194,7 @@ public class TableViewer extends JFrame {
 				try{
 					for( String s : newRowsModel.getRowAt(i)){ 
 						if ( s != null && !s.matches("\\s+")){ // идем по записи и ищем в ней нулевое или состоящее из одних пробелов значение
-							tableViewModel.addRow(newRowsModel.getRowAt(i));
+							tableViewModel.addRow(newRowsModel.removeRow(i));
 							break;
 						}
 					}												
