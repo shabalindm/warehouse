@@ -12,21 +12,24 @@ import javax.swing.table.AbstractTableModel;
 
 public class ItemsTableModel extends AbstractTableModel{
 	private List<Item> cache  = new ArrayList<>();
-	public String sqlInfoMSG = " ";	
 	private String whereCond;
 	private DAO dao;
-	//ptivate 
+	private MessageListener listener; 
 	
-	
-
 	public ItemsTableModel(DAO dao,  String whereCond)  {
 		this.dao = dao;
-		this.whereCond = whereCond;
-		updateCache();		
-		
+		this.whereCond = whereCond;	
 	}
-
-
+	
+	public void setMessageListener(MessageListener listener){
+		this.listener = listener;
+	}
+	
+	private void announce(String msg){
+		if (listener != null)
+			listener.setText(msg);			
+	}
+	
 	public void updateCache()  {
 			Statement stmt = null;
 			ResultSet rs = null;
@@ -41,14 +44,16 @@ public class ItemsTableModel extends AbstractTableModel{
 					Item item = new Item(null);
 					item.pollFieldsFromResultSet(rs, dao.getColumnNames());
 					cache.add(item);
-				}						
+				}	
+				announce(null); //операци€ успешна
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
-				sqlInfoMSG = e.getMessage();
+				announce(e.getMessage());
 				e.printStackTrace();
 			}		
 		
-		finally{try {stmt.close();
+		finally{ fireTableDataChanged();
+			try {stmt.close();
 		} catch (SQLException e) {	
 			e.printStackTrace();
 		}}
@@ -79,7 +84,7 @@ public class ItemsTableModel extends AbstractTableModel{
 	}
 	
 	/** —оздает новый item и записывает его в базу. ¬нимание - просто записывает, значение в кеше автоматически не по€вл€етс€*/
-	public void addRow(String[] record) {
+	public boolean addRow(String[] record) {
 		Item item = new Item(null);
 		item.setSize(record.length);
 		for (int i = 0; i<record.length; i++ )
@@ -88,10 +93,13 @@ public class ItemsTableModel extends AbstractTableModel{
 		// добавл€ем в базу
 		try {
 			dao.storeNew(item);
+			announce(null);
+			return true;
 		} catch (SQLException e) {
-			sqlInfoMSG = e.getMessage();
+			announce(e.getMessage());
 			e.printStackTrace();
-		}		 
+		}
+		return false;		 
 	}
 
 	@Override
@@ -102,14 +110,15 @@ public class ItemsTableModel extends AbstractTableModel{
 				 dao.changeID(item.getId(), aValue);
 				 // —охран€ем item с обновленным ID
 				 item.setId(aValue);
+				 announce(null);
 			}
 			else{
 				item.setVal(columnIndex, aValue);			
 				dao.store(item);
-				
+				announce(null);
 			}
 		} catch (SQLException e){	
-			sqlInfoMSG = e.getMessage();
+			announce(e.getMessage());
 			e.printStackTrace();
 		}	
 		finally {
@@ -118,7 +127,7 @@ public class ItemsTableModel extends AbstractTableModel{
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
-			fireTableCellUpdated(rowIndex, columnIndex);
+			//fireTableCellUpdated(rowIndex, columnIndex);
 		}
 	}
 	
@@ -134,9 +143,10 @@ public class ItemsTableModel extends AbstractTableModel{
 				Item item = cache.get(rowNum);
 				dao.delete(item);
 				list.add(item); // после удалени€ добавл€ем в список успешно удаленных из Ѕƒ
+				announce(null);
 			}
 		} catch (SQLException e) {
-			sqlInfoMSG = e.getMessage();
+			announce(e.getMessage());
 			e.printStackTrace();
 		}
 		finally{

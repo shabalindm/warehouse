@@ -211,7 +211,7 @@ public class DAO {
 	 public void close() {
 		   try
 		   {			   
-			   if (pstmInsert != null)
+			   if (pstmInsert!= null)
 				   pstmInsert.close();
 
 			   if (pstmUpdate != null)

@@ -42,7 +42,29 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 
 public class TableViewer extends JFrame {
-	private Connection conn;
+
+	 class whereBtnListener implements ActionListener {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {			
+			whereCond= JOptionPane.showInputDialog(TableViewer.this, 
+		         "Введите условие where", 
+		         "Input Dialog Box", JOptionPane.INFORMATION_MESSAGE);	
+			tableViewModel.updateCache();
+		}
+
+	}
+
+	 class refreshBtnistener implements ActionListener {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			tableViewModel.updateCache();
+
+		}
+
+	}
+
 	boolean commited = true;
 	
 	private String whereCond = "";
@@ -59,8 +81,12 @@ public class TableViewer extends JFrame {
 	JButton rollbackBtn;
 	JButton insertBtn; 
 	JButton deleteBtn;
-	InfoTextArea information = new InfoTextArea ();
+	private JButton refreshBtn;
+	private JButton setWhereBtn;
+	
+	InfoTextArea information;
 	private DAO dao;
+	
 	
 	/**Слушатель, который следит за изменением порядка и ширины стобцов верхней таблицы и повторяет эти операции для нижней таблицы.
 	 * В результате таблицы ведут себя как одна с разделителем */
@@ -100,24 +126,23 @@ public class TableViewer extends JFrame {
 
 	 /**Конструктор*/
 	public TableViewer(DAO dao){	
-		conn = dao.getConnection();
-		this.dao = dao;
+		this.dao = dao;		
+				
+		commitBtn = makeButton("Сохранить", null, new SaveBtnListener() );
 		
-		initTables(dao);
-		
-		commitBtn = makeButton("Сохранить", null, new SaveBtnListener()  );
-		
-		rollbackBtn = makeButton("Откатить", null, new rollBackListener()  );	
+		rollbackBtn = makeButton("Откатить", null, new rollBackListener());	
 		
 		deleteBtn = makeButton("Удалить", null, new deleteBtmListener());
 		insertBtn = makeButton("Вставить", null, new insertBtmListener());
+		refreshBtn = makeButton("Обновить", null, new refreshBtnistener());
+		setWhereBtn = makeButton("Условия", null, new whereBtnListener());
 		
+		information = new InfoTextArea ();
 		information.setEditable(false);
 		information.setLineWrap(true);
-		information.setText(tableViewModel.sqlInfoMSG);	
 		information.setRows(3);
 		
-		/* Расстановка компонентов во фрейме*/
+		initTables(dao);
 		
 		upper.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);		
 		
@@ -142,11 +167,13 @@ public class TableViewer extends JFrame {
 		infopane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 			
 		JPanel btmPanel = new JPanel();
-		btmPanel.setLayout(new GridLayout(2,2));
+		btmPanel.setLayout(new GridLayout(2,3));
 		btmPanel.add(commitBtn);
 		btmPanel.add(rollbackBtn);
 		btmPanel.add(insertBtn);
 		btmPanel.add(deleteBtn);
+		btmPanel.add(refreshBtn);
+		btmPanel.add(setWhereBtn);
 		
 		JPanel controlPanel = new JPanel();
 		infopane.setMaximumSize(new Dimension(10000, 40));
@@ -180,7 +207,6 @@ public class TableViewer extends JFrame {
 				tableViewModel.deleteRows(deleted);				
 			}
 			finally {
-				information.setText(tableViewModel.sqlInfoMSG);
 				tableViewModel.fireTableStructureChanged();
 			}		
 		}}
@@ -190,24 +216,29 @@ public class TableViewer extends JFrame {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			for (int i = 0; i < newRowsModel.getRowCount(); i++){
-				try{
-					for( String s : newRowsModel.getRowAt(i)){ 
+			try{
+				while (newRowsModel.getRowCount()>0){					
+					// вставляем строчку, если она не пуста
+					for( String s : newRowsModel.getRowAt(0)){ 
 						if ( s != null && !s.matches("\\s+")){ // идем по записи и ищем в ней нулевое или состоящее из одних пробелов значение
-							tableViewModel.addRow(newRowsModel.removeRow(i));
+							if(!tableViewModel.addRow(newRowsModel.getRowAt(0))) // если не удалось записать
+								return;
 							break;
 						}
-					}												
+					}	
+					// Удаляем эту строчку из нижней таблицы,
+					newRowsModel.removeRow(0);	
 				}
-				finally {	
-					information.setText(tableViewModel.sqlInfoMSG);
-					tableViewModel.updateCache();
-					tableViewModel.fireTableStructureChanged();
-				}
-				
+				while(newRowsModel.getRowCount() < 10)
+					newRowsModel.addRow();
+					
+			}finally {
+				tableViewModel.updateCache();
+				tableViewModel.fireTableStructureChanged();
+				newRowsModel.fireTableDataChanged();
 			}		
 		}}
-	
+
 	/** Слушатель, проверяющий, зафиксированы ли изменения в базе и выводящий диалог с предложеним зафиксировать*/
 	class CloseOperationListener extends WindowAdapter{
 		public void windowClosing(WindowEvent e){
@@ -215,12 +246,12 @@ public class TableViewer extends JFrame {
 				int result = JOptionPane.showConfirmDialog((Component) null, "Сохранить изменененные данные?",
 						"alert", JOptionPane.YES_NO_CANCEL_OPTION);
 				if (result == 0){
-					try {	conn.commit();	}
+					try {	dao.getConnection().commit();	}
 					catch (SQLException e1) {e1.printStackTrace();}
 					TableViewer.this.dispose();
 				}
 				else if (result == 1){
-					try {	conn.rollback();}
+					try {	dao.getConnection().rollback();}
 					catch (SQLException e1) {e1.printStackTrace();}
 					TableViewer.this.dispose();
 				}
@@ -238,7 +269,7 @@ public class TableViewer extends JFrame {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			try {
-				conn.commit();
+				dao.getConnection().commit();
 				commited = true;
 			} catch (SQLException e1) {
 				e1.printStackTrace();
@@ -250,7 +281,7 @@ public class TableViewer extends JFrame {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			try {
-				conn.rollback();
+				dao.getConnection().rollback();
 				commited = true;
 			} catch (SQLException e1) {
 				e1.printStackTrace();
@@ -260,8 +291,9 @@ public class TableViewer extends JFrame {
 	
 	/**Считывает данные из базы, создает на их основе новые таблицы и и размещает их во фрейме*/	
 	private void initTables(DAO dao) {		
-			tableViewModel = new ItemsTableModel(dao, whereCond);
-		
+		tableViewModel = new ItemsTableModel(dao, whereCond);
+		tableViewModel.setMessageListener(information);	
+		tableViewModel.updateCache();
 		
 		tableView = new JTable(tableViewModel);		
 		tableView.getColumnModel().addColumnModelListener( new TableColumnWidhtListener() );
@@ -272,10 +304,8 @@ public class TableViewer extends JFrame {
 		tableViewModel.addTableModelListener( new TableModelListener(){
 			@Override
 			public void tableChanged(TableModelEvent e) {
-				commited = false;		
-				information.setText(tableViewModel.sqlInfoMSG);
-			}});
-		
+				commited = false;
+			}});		
 		
 		
 		newRowsModel = new ListOfArraysModel(tableViewModel.getColumnCount());
@@ -285,10 +315,7 @@ public class TableViewer extends JFrame {
 		newRows.setCellSelectionEnabled(true);
 		
 		upper.setViewportView(tableView);
-		down.setViewportView(newRows);
-		information.setText(tableViewModel.sqlInfoMSG);
-		
-		
+		down.setViewportView(newRows);		
 	}
 
 	class EJTable extends JTable implements KeyListener {
