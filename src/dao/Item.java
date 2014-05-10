@@ -72,7 +72,7 @@ public class Item {
 		
 		else if (size() !=  columnNames.length ) 
 			throw new RuntimeException("Число элементов в item не совпадает с числом назаваний колонок");
-	
+			
 		for (int i = 0; i<columnNames.length; i ++)
 			setVal(i, rs.getObject(columnNames[i]));
 		

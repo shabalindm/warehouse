@@ -1,9 +1,8 @@
 package dao;
 
 
-import java.awt.Color;
-import java.awt.Component;
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -12,14 +11,15 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.sql.Connection;
 import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.Icon;
 import javax.swing.JButton;
@@ -38,32 +38,9 @@ import javax.swing.event.TableColumnModelEvent;
 import javax.swing.event.TableColumnModelListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumn;
 
 public class TableViewer extends JFrame {
-
-	 class whereBtnListener implements ActionListener {
-
-		@Override
-		public void actionPerformed(ActionEvent e) {			
-			whereCond= JOptionPane.showInputDialog(TableViewer.this, 
-		         "Введите условие where", 
-		         "Input Dialog Box", JOptionPane.INFORMATION_MESSAGE);	
-			tableViewModel.updateCache();
-		}
-
-	}
-
-	 class refreshBtnistener implements ActionListener {
-
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			tableViewModel.updateCache();
-
-		}
-
-	}
+	DateFormat f = new SimpleDateFormat("MM/dd/yy");
 
 	boolean commited = true;
 	
@@ -116,7 +93,6 @@ public class TableViewer extends JFrame {
 			if ( tableView.getTableHeader().getResizingColumn() !=null){
 				int colIngex = tableView.getTableHeader().getResizingColumn().getModelIndex();
 				int widht = tableView.getTableHeader().getResizingColumn().getWidth();
-				System.out.println(colIngex); System.out.println(order[colIngex]);
 				newRows.getColumnModel().getColumn(order[colIngex]).setPreferredWidth(widht);
 				}
 		}
@@ -216,34 +192,32 @@ public class TableViewer extends JFrame {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			try{
-				while (newRowsModel.getRowCount()>0){					
-					// вставляем строчку, если она не пуста
-					for( String s : newRowsModel.getRowAt(0)){ 
-						if ( s != null && !s.matches("\\s+")){ // идем по записи и ищем в ней нулевое или состоящее из одних пробелов значение
-							if(!tableViewModel.addRow(newRowsModel.getRowAt(0))) // если не удалось записать
-								return;
-							break;
-						}
-					}	
-					// Удаляем эту строчку из нижней таблицы,
-					newRowsModel.removeRow(0);	
-				}
-				while(newRowsModel.getRowCount() < 10)
-					newRowsModel.addRow();
-					
-			}finally {
-				tableViewModel.updateCache();
-				tableViewModel.fireTableStructureChanged();
-				newRowsModel.fireTableDataChanged();
-			}		
-		}}
+			List <String []> insertedRows = new ArrayList<>();
+			for (int i = 0; i < newRowsModel.getRowCount(); i++){
+				for( String s : newRowsModel.getRowAt(i)){ 
+					if ( s != null && !s.matches("\\s+")){ // идем по записи и ищем в ней нулевое или состоящее из одних пробелов значение
+						if(insertedRows.add(newRowsModel.getRowAt(i)));
+						break;
+					}//if
+				}//for
+			}// for
+		 tableViewModel.addRows(insertedRows);
+		 tableViewModel.updateCache();
+		 tableViewModel.fireTableDataChanged();
+		 if (insertedRows.size() == 0)
+			 newRowsModel.reset();
+		 else 
+			 for (String [] row : insertedRows )
+				 newRowsModel.getTable().retainAll(insertedRows);
+		 newRowsModel.fireTableDataChanged();
+		}//actionPerformed
+	}//deleteBtmListener
 
 	/** Слушатель, проверяющий, зафиксированы ли изменения в базе и выводящий диалог с предложеним зафиксировать*/
 	class CloseOperationListener extends WindowAdapter{
 		public void windowClosing(WindowEvent e){
 			if (!commited){ 
-				int result = JOptionPane.showConfirmDialog((Component) null, "Сохранить изменененные данные?",
+				int result = JOptionPane.showConfirmDialog((Component) null, "Сохранить измененные данные?",
 						"alert", JOptionPane.YES_NO_CANCEL_OPTION);
 				if (result == 0){
 					try {	dao.getConnection().commit();	}
@@ -289,9 +263,67 @@ public class TableViewer extends JFrame {
 			} 	
 		initTables(dao);}}
 	
+	/** Слушатель кнопки "Условия"*/
+	 class whereBtnListener implements ActionListener {
+		
+		@Override
+		public void actionPerformed(ActionEvent e) {	
+			 final JFrame dialog = new JFrame();
+			 dialog.setLocationByPlatform(true);
+			 dialog.setLayout(new BorderLayout());
+			 final JTextArea input = new JTextArea(10, 50 );
+			 dialog.add(input, BorderLayout.CENTER );
+			 input.setText(whereCond);
+			 input.setLineWrap(true);
+			 JButton okBtn = makeButton("OK", null, new ActionListener(){
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					whereCond = input.getText();
+					tableViewModel.setWhereCond(whereCond);
+					tableViewModel.updateCache();
+					dialog.dispose();			
+				}});
+			 
+			 JButton cancelBtn = makeButton("Отмена", null, new ActionListener(){
+
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						dialog.dispose();			
+					}});
+			 JPanel btnpanel = new JPanel();
+			 btnpanel.setLayout(new FlowLayout());
+			 btnpanel.add(okBtn);
+			 btnpanel.add(cancelBtn);
+			 dialog.add(btnpanel, BorderLayout.SOUTH);
+			 String example = "<html>Введите условия \"where\" и \"order by\" для sql запроса. Пример: <br> "
+			 		+ "WHERE "  + dao.getTablePK() + " &lt 10 <br> ORDER BY " + dao.getTablePK() + "</html>";
+			 dialog.add(new JLabel(example), BorderLayout.NORTH);
+			 
+			 dialog.setDefaultCloseOperation(EXIT_ON_CLOSE);
+			 dialog.pack();
+			 dialog.setAlwaysOnTop(true);
+			 dialog.setVisible(true);
+		}
+
+	}
+
+	 /** Слушатель кнопки "Обновить" */
+	 class refreshBtnistener implements ActionListener {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			tableViewModel.updateCache();
+
+		}
+
+	}
+
+	
 	/**Считывает данные из базы, создает на их основе новые таблицы и и размещает их во фрейме*/	
+	@SuppressWarnings("unchecked")
 	private void initTables(DAO dao) {		
-		tableViewModel = new ItemsTableModel(dao, whereCond);
+		tableViewModel = new ItemsTableModel(dao);
 		tableViewModel.setMessageListener(information);	
 		tableViewModel.updateCache();
 		
@@ -299,7 +331,12 @@ public class TableViewer extends JFrame {
 		tableView.getColumnModel().addColumnModelListener( new TableColumnWidhtListener() );
 		tableView.setAutoCreateRowSorter(true);
 		tableView.setCellSelectionEnabled(true);
-	
+		tableViewModel.f = f;
+//		for (int i = 0; i < tableViewModel.getColumnCount(); i++ ){
+//			if (java.util.Date.class.isAssignableFrom(tableViewModel.getDAO().getColumnClasses()[i]) )
+//				tableView.getColumnModel().getColumn(i).setCellRenderer(new DateRenderer(f));
+//			}
+		
 		tableView.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		tableViewModel.addTableModelListener( new TableModelListener(){
 			@Override
@@ -317,7 +354,7 @@ public class TableViewer extends JFrame {
 		upper.setViewportView(tableView);
 		down.setViewportView(newRows);		
 	}
-
+/** Это таблица, которая умеет вставлять данные и системного буфера при нажатии ctrl+V и удалять из по кнопке delete*/
 	class EJTable extends JTable implements KeyListener {
 		private ListOfArraysModel model;
 		
@@ -337,7 +374,6 @@ public class TableViewer extends JFrame {
 				int startRow = getSelectedRow();
 				int startCol = getSelectedColumn();
 				if (startRow != -1 || startCol !=-1 ){
-					System.out.println(startRow + " "+ startRow);
 					model.insertFromBuffer(startRow, startCol);
 					repaint();
 					}	 

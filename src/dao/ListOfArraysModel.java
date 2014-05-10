@@ -13,6 +13,17 @@ import javax.swing.table.TableModel;
 public class ListOfArraysModel extends AbstractTableModel {
 	
 private List<String[]> table  = new ArrayList<>();
+
+public List<String[]> getTable() {
+	return table;
+}
+
+
+public void setTable(List<String[]> table) {
+	this.table = table;
+}
+
+
 private int columnCount; 	
 	
 	public ListOfArraysModel(int columnCount){

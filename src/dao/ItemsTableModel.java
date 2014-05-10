@@ -4,7 +4,11 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.swing.ScrollPaneConstants;
@@ -12,13 +16,13 @@ import javax.swing.table.AbstractTableModel;
 
 public class ItemsTableModel extends AbstractTableModel{
 	private List<Item> cache  = new ArrayList<>();
-	private String whereCond;
+	private String whereCond = "";
 	private DAO dao;
-	private MessageListener listener; 
+	private MessageListener listener;
+	DateFormat f;
 	
-	public ItemsTableModel(DAO dao,  String whereCond)  {
+	public ItemsTableModel(DAO dao)  {
 		this.dao = dao;
-		this.whereCond = whereCond;	
 	}
 	
 	public void setMessageListener(MessageListener listener){
@@ -27,13 +31,27 @@ public class ItemsTableModel extends AbstractTableModel{
 	
 	private void announce(String msg){
 		if (listener != null)
-			listener.setText(msg);			
+			listener.setText(msg);		
 	}
 	
+	public DAO getDAO() {
+		return dao;
+	}
+	
+		
+	public String getWhereCond() {
+		return whereCond;
+	}
+
+	public void setWhereCond(String whereCond) {
+		this.whereCond = whereCond;
+	}
+
 	public void updateCache()  {
 			Statement stmt = null;
 			ResultSet rs = null;
-			String sql = "select * from " + dao.getTableName()  + whereCond;
+			String sql = "select * from " + dao.getTableName() +" "  + whereCond;
+			System.out.println(sql);
 			try{			
 				stmt = dao.getConnection().createStatement();
 				rs = stmt.executeQuery(sql);
@@ -45,13 +63,12 @@ public class ItemsTableModel extends AbstractTableModel{
 					item.pollFieldsFromResultSet(rs, dao.getColumnNames());
 					cache.add(item);
 				}	
-				announce(null); //операци€ успешна
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				announce(e.getMessage());
 				e.printStackTrace();
 			}		
-		
+
 		finally{ fireTableDataChanged();
 			try {stmt.close();
 		} catch (SQLException e) {	
@@ -79,32 +96,57 @@ public class ItemsTableModel extends AbstractTableModel{
 
 	@Override
 	public Object getValueAt(int rowIndex, int columnIndex) {
-		Item item = cache.get(rowIndex);
-		return item.getVal(columnIndex);
+		 Object val = cache.get(rowIndex).getVal(columnIndex);
+		if (java.util.Date.class.isAssignableFrom(dao.getColumnClasses()[columnIndex]) && val != null )
+			val = f.format(val);			
+		return val;
 	}
 	
 	/** —оздает новый item и записывает его в базу. ¬нимание - просто записывает, значение в кеше автоматически не по€вл€етс€*/
-	public boolean addRow(String[] record) {
-		Item item = new Item(null);
-		item.setSize(record.length);
-		for (int i = 0; i<record.length; i++ )
-			item.setVal(i, record[i]);
-		
-		// добавл€ем в базу
+	public void addRows(List<String[]> records) {
 		try {
-			dao.storeNew(item);
+			while (records.size() > 0){
+				Item item = new Item(null);
+				String[] record = records.get(0);
+				item.setSize(record.length);
+				for (int i = 0; i<record.length; i++ ){					
+					if (java.util.Date.class.isAssignableFrom(dao.getColumnClasses()[i]) && record[i] != null ){
+						try {
+							item.setVal(i, new Timestamp((((Date)f.parseObject(record[i])).getTime())));
+						} catch (ParseException e) {
+							announce("Ќеправильный формат даты");
+							return;
+						}
+					}		
+					else{
+						System.out.println(1111111111);
+						item.setVal(i, record[i]);}
+				}
+
+				// добавл€ем в базу
+				dao.storeNew2(item);
+				// удал€ем из коллекции
+				records.remove(record);
+			}
 			announce(null);
-			return true;
-		} catch (SQLException e) {
-			announce(e.getMessage());
-			e.printStackTrace();
+			} catch (SQLException e) {
+				announce(e.getMessage());
+				e.printStackTrace(); 
+			}
+		
 		}
-		return false;		 
-	}
 
 	@Override
 	public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
 		Item item = cache.get(rowIndex); 
+		if (java.util.Date.class.isAssignableFrom(dao.getColumnClasses()[columnIndex])&& aValue != null )
+			try {
+				aValue = new Timestamp((((Date)f.parseObject((String) aValue)).getTime()));
+			} catch (ParseException e1) {
+					announce("Ќеправильный формат даты");
+					return;
+			}
+		
 		try{				
 			if (columnIndex == 0){
 				 dao.changeID(item.getId(), aValue);
@@ -117,6 +159,7 @@ public class ItemsTableModel extends AbstractTableModel{
 				dao.store(item);
 				announce(null);
 			}
+
 		} catch (SQLException e){	
 			announce(e.getMessage());
 			e.printStackTrace();
@@ -127,7 +170,6 @@ public class ItemsTableModel extends AbstractTableModel{
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
-			//fireTableCellUpdated(rowIndex, columnIndex);
 		}
 	}
 	

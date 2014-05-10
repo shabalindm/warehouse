@@ -49,7 +49,8 @@ public class DAO {
 	private PreparedStatement pstmSearchById = null;
 	private PreparedStatement pstmDelete = null;
 	private PreparedStatement pstmChangeID = null;
-	
+	private Statement stmt;
+
 	 
 	public DAO(Connection conn, String tableName, String tablePK) throws SQLException {
 		
@@ -58,7 +59,7 @@ public class DAO {
 		this.tablePK = tablePK;
 		
 		// Узнаем имена столбцов и типы столбцов, выполнив пробный запрос
-		Statement stmt = conn.createStatement(); 
+		stmt = conn.createStatement(); 
 		ResultSet rs = stmt.executeQuery("select * from " +tableName + " where 1<>1");
 		try{
 			stmt = conn.createStatement(); 
@@ -89,7 +90,7 @@ public class DAO {
 			}
 			
 		}
-		finally {	rs.close();		stmt.close();}
+		finally {	rs.close();}
 		
 		//Собираем строчки для sql-запросов		
 		String [] colls = columnNames; 
@@ -129,6 +130,8 @@ public class DAO {
 		pstmSearchById = conn.prepareStatement(sqlSearchById);
 		pstmDelete = conn.prepareStatement(sqlDelete);		
 		pstmChangeID = conn.prepareStatement(sqlChangeID);	
+		
+		stmt = conn.createStatement();
 	}
 	 
 	
@@ -178,8 +181,7 @@ public class DAO {
 	
 		
 	/**Записывает значения полей item в базу данных в виде новой строчки */
-	public void storeNew(Item item )   throws SQLException
-	{			
+	public void storeNew(Item item )   throws SQLException{			
 		for (int i = 1; i < columnNames.length ; i++)	{			
 			pstmInsert.setObject(i, item.getVal(i));			
 		}
@@ -187,6 +189,30 @@ public class DAO {
 		
 		pstmInsert.executeUpdate();
 		 
+	}
+	
+	/**Записывает значения полей item в базу данных в виде новой строчки, но при этом prepared statemet не использует */
+	public void storeNew2(Item item )   throws SQLException{
+		StringBuilder sql = new StringBuilder();
+		sql.append("INSERT INTO " + tableName  + " (");
+		for(int i = 0; i < columnNames.length; i ++)
+			if(item.getVal(i) != null){
+				sql.append(columnNames[i]);
+				sql.append(", ");
+			}
+		sql.delete(sql.length()-2 , sql.length());
+		
+		sql.append( ") VALUES ( ");		   
+		for(int i = 0; i < columnNames.length; i ++)
+			if(item.getVal(i) != null){
+				sql.append("'");
+				sql.append(item.getVal(i).toString().replaceAll("'", "''"));
+				sql.append("', ");
+			}	
+		
+		sql.delete(sql.length()-2 , sql.length());
+		sql.append(")");
+		stmt.executeUpdate(sql.toString());		
 	}
 	
 	/**Находит по значению iD запись в базе данных и переписывает в нее значения полей из  item  */
@@ -225,6 +251,9 @@ public class DAO {
 			   
 			   if(pstmChangeID != null)
 				   pstmChangeID.close();
+			   if( stmt != null)
+				   stmt.close();
+			   
 		   }
 		   catch (SQLException e)
 		   {
