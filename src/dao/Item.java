@@ -7,7 +7,7 @@ import java.sql.SQLException;
  * которые могут содержать как полноценую запись из другой таблицы, так и только одно значение ID. 
  * Нумерация полей начинается с нуля (0-е поле  - это id)*/
 public class Item {
-	
+	private String rowId;
 	private Object id; 
 	private Item [] otherFields;
 	
@@ -63,10 +63,26 @@ public class Item {
 	public void setId(Object id) {
 		this.id = id;
 	}
+	public String getRowId() {
+		return rowId;
+	}
 	
 	   /**В соответсвие с набором имен столбцов columnNames берет  значения из текущей позиции курсора rs
-	    *  и заполняет ими все поля в объекте item.   */
-	public void pollFieldsFromResultSet(ResultSet rs, String[] columnNames) 	throws SQLException{
+	    *  и заполняет ими все поля в объекте item.  */
+	public void pollFieldsFromResultSet(ResultSet rs, String[] columnNames) throws SQLException{
+		if ( otherFields == null)
+			setSize(columnNames.length);
+		
+		else if (size() !=  columnNames.length ) 
+			throw new RuntimeException("Число элементов в item не совпадает с числом назаваний колонок");
+			
+		for (int i = 0; i<columnNames.length; i ++)
+			setVal(i, rs.getObject(columnNames[i]));		
+	}
+	
+	 /**В соответсвие с набором имен столбцов columnNames берет  значения из текущей позиции курсора rs
+	    *  и заполняет ими все поля в объекте item. Включает "ROWID"  */
+	public void pollFieldsFromRSRowID(ResultSet rs, String[] columnNames) throws SQLException{
 		if ( otherFields == null)
 			setSize(columnNames.length);
 		
@@ -75,9 +91,8 @@ public class Item {
 			
 		for (int i = 0; i<columnNames.length; i ++)
 			setVal(i, rs.getObject(columnNames[i]));
-		
+		rowId = rs.getString("ROWID");		
 	}
-	
 	
 	private int size() {
 		if (otherFields == null)

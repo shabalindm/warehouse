@@ -110,7 +110,8 @@ public class ItemsTableModel extends AbstractTableModel{
 				String[] record = records.get(0);
 				item.setSize(record.length);
 				for (int i = 0; i<record.length; i++ ){					
-					if (java.util.Date.class.isAssignableFrom(dao.getColumnClasses()[i]) && record[i] != null ){
+					if (java.util.Date.class.isAssignableFrom(dao.getColumnClasses()[i]) && 
+							record[i] != null && !record[i].matches("\\s*") ){
 						try {
 							item.setVal(i, new Timestamp((((Date)f.parseObject(record[i])).getTime())));
 						} catch (ParseException e) {
@@ -118,8 +119,7 @@ public class ItemsTableModel extends AbstractTableModel{
 							return;
 						}
 					}		
-					else{
-						System.out.println(1111111111);
+					else{ 				
 						item.setVal(i, record[i]);}
 				}
 

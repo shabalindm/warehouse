@@ -18,10 +18,8 @@ public class Test {
 
 	public static void main(String[] args) {
 		
-		System.out.println("\\s");
-		System.out.println(T2.i);
-		System.out.println(new T1().getI());
-		JPanel g = null;
+		System.out.println("\n".matches("\\s*"));
+
 	}
 
 }
