@@ -98,10 +98,10 @@ public class ButtonTabComponent extends JPanel {
 
         public void actionPerformed(ActionEvent e) {
             int i = pane.indexOfTabComponent(ButtonTabComponent.this);
-            if (i != -1) {
-                pane.remove(i);
-            }
+            removeTab(i);
         }
+
+		
 
         //we don't want to update UI for this button
         public void updateUI() {
@@ -144,6 +144,15 @@ public class ButtonTabComponent extends JPanel {
             }
         }
     };
+    
+    /**
+	 * @param i
+	 */
+	public void removeTab(int i) {
+		if (i != -1) {
+            pane.remove(i);
+        }
+	}
 }
 
 

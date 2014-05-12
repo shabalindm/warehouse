@@ -16,6 +16,7 @@ import javax.swing.table.AbstractTableModel;
 
 public class ItemsTableModel extends AbstractTableModel{
 	private List<Item> cache  = new ArrayList<>();
+	private int rowCount;
 	private String whereCond = "";
 	private DAO dao;
 	private MessageListener listener;
@@ -119,7 +120,7 @@ public class ItemsTableModel extends AbstractTableModel{
 							item.setVal(i, new Timestamp((((Date)f.parseObject(record[i])).getTime())));
 						} catch (ParseException e) {
 							announce("Неправильный формат даты");
-							return;
+							return; 
 						}
 					}		
 					else{ 				
@@ -153,6 +154,7 @@ public class ItemsTableModel extends AbstractTableModel{
 			item.setVal(columnIndex, aValue);			
 			dao.storebyRowId(item);
 			announce(null);
+			fireTableCellUpdated(rowIndex, columnIndex);
 
 		} catch (SQLException e){
 			
