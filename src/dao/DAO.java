@@ -15,14 +15,15 @@ import java.util.List;
 public class DAO {
 	private Connection conn;
 	private String tableName;
-	private String tablePK; // Имя первичного ключа
+	//private String tablePK; // Имя первичного ключа
+	private Integer PKPlace = null; // позиция первичного ключа c массиве с именами строк
 	private String[] columnNames; // Имена всех столбцов в таблице
 	private Class[] columnClasses; 
 	
 	
 
 	public String getTablePK() {
-		return tablePK;
+		return columnNames[PKPlace];
 	}
 
 	public Class[] getColumnClasses() {
@@ -61,11 +62,10 @@ public class DAO {
 	private Statement stmt;
 
 	 
-	public DAO(Connection conn, String tableName, String tablePK) throws SQLException {
+	public DAO(Connection conn, String tableName, String PKName) throws SQLException {
 		
 		this.conn = conn;
 		this.tableName = tableName;
-		this.tablePK = tablePK;
 		
 		// Узнаем имена столбцов и типы столбцов, выполнив пробный запрос
 		stmt = conn.createStatement(); 
@@ -76,32 +76,22 @@ public class DAO {
 			ResultSetMetaData metaData = rs.getMetaData();
 			columnNames = new String [metaData.getColumnCount()];
 			columnClasses = new Class[metaData.getColumnCount()];
-			
-			columnNames[0] = tablePK;
 						
-			for(int i = 0, j = 1; i < columnNames.length; i++){
-				String column = metaData.getColumnName(i+1);
-				Class colClass= null;
+			for(int i = 0; i < columnNames.length; i++){
+				columnNames[i] = metaData.getColumnName(i+1);
+				if (columnNames[i].equalsIgnoreCase(PKName))
+					PKPlace = i;
 				try {
-					 colClass = Class.forName(metaData.getColumnClassName(i+1));
+					columnClasses[i] = Class.forName(metaData.getColumnClassName(i+1));
 				} catch (ClassNotFoundException e) {
 					e.printStackTrace();
-				}
-				if (!column.equals(tablePK)){
-					columnNames[j] = column;
-					columnClasses[j] = colClass;
-					j++;
-				}
-				else{
-					columnNames[0] = column;
-					columnClasses[0] = colClass;
 				}
 			}
 			
 		}
 		finally {	rs.close();}
 		
-		//Собираем строчки для sql-запросов		
+		//Собираем строчки для sql-запросов и подготавливем их		
 		String [] colls = columnNames; 
 		//1. Подготовка sqlInsert; 
 		sqlInsert = "INSERT INTO " + tableName  + " (";
@@ -112,13 +102,21 @@ public class DAO {
 		for(int i = 1; i < colls.length; i ++)
 			sqlInsert += "?, ";
 		sqlInsert+="?)";
+		pstmInsert = conn.prepareStatement(sqlInsert);
 
 		//2 подготовка sqlUpdate
-		sqlUpdate = "UPDATE " + tableName + " SET ";
-		for(int i = 1; i<colls.length; i++)
-			sqlUpdate += colls[i] + " = ?, ";
-		sqlUpdate = sqlUpdate.substring(0, sqlUpdate.length()-2); // удаляем лишнюю запятую 
-		sqlUpdate += " WHERE " + colls[0] + " = ?";
+		if (PKPlace != null){
+			sqlUpdate = "UPDATE " + tableName + " SET ";
+			for(int i = 0; i<colls.length; i++){
+				if (i == PKPlace.intValue())
+					continue;			
+				sqlUpdate += colls[i] + " = ?, ";
+				
+			}
+			sqlUpdate = sqlUpdate.substring(0, sqlUpdate.length()-2); // удаляем лишнюю запятую 
+			sqlUpdate += " WHERE " + colls[PKPlace] + " = ?";
+			pstmUpdate = conn.prepareStatement(sqlUpdate);
+		}
 		
 		//3 подготовка sqlUpdateByRowId
 		sqlUpdateByRowId = "UPDATE " + tableName + " SET ";
@@ -126,14 +124,17 @@ public class DAO {
 			sqlUpdateByRowId += colls[i] + " = ?, ";
 		sqlUpdateByRowId = sqlUpdateByRowId.substring(0, sqlUpdateByRowId.length()-2); // удаляем лишнюю запятую 
 		sqlUpdateByRowId += " WHERE ROWID = ?";
+		pstmUpdateByRowId = conn.prepareStatement(sqlUpdateByRowId);
 
 		//4 подготовка sqlSearchById
-		sqlSearchById = "SELECT ";
-		for(int i = 0; i<colls.length; i++)
-			sqlSearchById += colls[i]+ ", ";
-		sqlSearchById +=  " ROWID "; 
-		sqlSearchById += " FROM " + tableName + " WHERE " + colls[0] + " = ?";
-		
+		if (PKPlace != null){
+			sqlSearchById = "SELECT ";
+			for(int i = 0; i<colls.length; i++)
+				sqlSearchById += colls[i]+ ", ";
+			sqlSearchById +=  " ROWID "; 
+			sqlSearchById += " FROM " + tableName + " WHERE " + colls[PKPlace] + " = ?";
+			pstmSearchById = conn.prepareStatement(sqlSearchById);
+		}
 		
 		//5 подготовка sqlSearchByRowId
 		sqlSearchByRowId = "SELECT ";
@@ -141,26 +142,24 @@ public class DAO {
 			sqlSearchByRowId += colls[i]+ ", ";
 		sqlSearchByRowId +=  " ROWID "; 
 		sqlSearchByRowId += " FROM " + tableName + " WHERE ROWID = ?";
+		pstmSearchByRowId = conn.prepareStatement(sqlSearchByRowId);
 
 
 		//6 подготовка sqlDelete
-		sqlDelete = "DELETE FROM " + tableName + " WHERE " + colls[0] + " = ?";
+		if (PKPlace != null){
+			sqlDelete = "DELETE FROM " + tableName + " WHERE " + colls[PKPlace] + " = ?";
+			pstmDelete = conn.prepareStatement(sqlDelete);	 
+		}
 		
 		//7 подготовка sqlDeleteByRowID
 		sqlDeleteByRowId = "DELETE FROM " + tableName + " WHERE ROWID = ?";
+		pstmDeleteByRowId = conn.prepareStatement(sqlDeleteByRowId);
 		
 		// 8 подготовка sqlChangeID
-		sqlChangeID = "UPDATE " + tableName + " SET " + tablePK +" = ? " + " WHERE " + tablePK +" = ? ";
-
-		// подготавливаем запросы
-		pstmInsert = conn.prepareStatement(sqlInsert);
-		pstmUpdate = conn.prepareStatement(sqlUpdate);
-		pstmUpdateByRowId = conn.prepareStatement(sqlUpdateByRowId);
-		pstmSearchById = conn.prepareStatement(sqlSearchById);
-		pstmSearchByRowId = conn.prepareStatement(sqlSearchByRowId);
-		pstmDelete = conn.prepareStatement(sqlDelete);	 
-		pstmDeleteByRowId = conn.prepareStatement(sqlDeleteByRowId);
-		pstmChangeID = conn.prepareStatement(sqlChangeID);	
+		if (PKPlace != null){
+			sqlChangeID = "UPDATE " + tableName + " SET " + colls[PKPlace]  +" = ? " + " WHERE " + colls[PKPlace] + " = ? ";
+			pstmChangeID = conn.prepareStatement(sqlChangeID);
+		}
 		
 		stmt = conn.createStatement();
 		
@@ -186,8 +185,8 @@ public class DAO {
 		try{
 			rs = pstmSearchById.executeQuery();
 			if (rs.next()){
-				result = new Item(null, columnNames.length);
-				result.pollFieldsFromRSRowID(rs, columnNames);
+				result = new Item(columnNames.length, PKPlace);
+				result.pollFieldsFromRSRowID(rs, columnNames, "ROWID" );
 			}
 			return result;
 		}
@@ -203,8 +202,8 @@ public class DAO {
 		try{
 			rs = pstmSearchByRowId.executeQuery();
 			if (rs.next()){
-				result = new Item(null, columnNames.length);
-				result.pollFieldsFromRSRowID(rs, columnNames);
+				result = new Item(columnNames.length, PKPlace);
+				result.pollFieldsFromRSRowID(rs, columnNames, "ROWID");
 			}
 			return result;
 		}
@@ -219,7 +218,7 @@ public class DAO {
 		try{
 			rs = pstmSearchById.executeQuery();
 			if (rs.next()){
-				item.pollFieldsFromRSRowID(rs, columnNames);
+				item.pollFieldsFromRSRowID(rs, columnNames, "ROWID");
 				return true;
 			}
 			return false;
@@ -235,7 +234,7 @@ public class DAO {
 		try{
 			rs = pstmSearchByRowId.executeQuery();
 			if (rs.next()){
-				item.pollFieldsFromRSRowID(rs, columnNames);
+				item.pollFieldsFromRSRowID(rs, columnNames, "ROWID");
 				return true;
 			}
 			return false;
@@ -254,7 +253,7 @@ public class DAO {
 	
 	/**Находит по RowID запись в базе и удаляет ее. Если не удается - возвращает false*/
 	public boolean  deleteByRowId(Item item) throws SQLException{
-		pstmDeleteByRowId.setObject(1, item.getId());
+		pstmDeleteByRowId.setObject(1, item.getRowId());
 		if (pstmDeleteByRowId.executeUpdate() != 0)
 			return true;
 		return false;
@@ -264,11 +263,11 @@ public class DAO {
 		
 	/**Записывает значения полей item в базу данных в виде новой строчки. Сохраняет значения из Item как есть в т.ч и null-значения, 
 	 *Вообще-то не нужен, метод storeNew2 лучше работает с null -значениями, хоть медленнее*/
-	public void storeNew(Item item )   throws SQLException{			
-		for (int i = 1; i < columnNames.length ; i++)	{			
+	public void storeNew(Item item) throws SQLException{			
+		for (int i = 0; i < columnNames.length ; i++)	{			
 			pstmInsert.setObject(i, item.getVal(i));			
 		}
-		pstmInsert.setObject(columnNames.length , item.getVal(0));		
+		pstmInsert.setObject(columnNames.length, item.getVal(0));		
 		pstmInsert.executeUpdate();
 		 
 	}
@@ -280,7 +279,6 @@ public class DAO {
 		List<Integer> notEmptycols = new ArrayList<>();
 		for(int i = 0; i < columnNames.length; i ++){
 			Object val = item.getVal(i);
-			System.out.println(val.toString().length());
 			if(val != null && !(val instanceof String && ((String)val).matches("\\s*")))
 				notEmptycols.add(i);
 		}
@@ -300,34 +298,41 @@ public class DAO {
 		sql.delete(sql.length()-2 , sql.length());
 		sql.append(")");
 		System.out.println(sql);
-		PreparedStatement pstm = conn.prepareStatement(sql.toString());
-				
-		int k =0;
-		for (int i : notEmptycols){
-			Object val = item.getVal(i);
-			System.out.println( (k+1) + val.toString());
-			pstm.setObject(k+1, val);
-			k++;
-		}
-		pstm.executeUpdate();		
+		PreparedStatement pstm = null;
+		try{
+			pstm  = conn.prepareStatement(sql.toString());
+			int k =0;
+			for (int i : notEmptycols){
+				Object val = item.getVal(i);
+				System.out.println( (k+1) + val.toString());
+				pstm.setObject(k+1, val);
+				k++;
+			}
+
+			pstm.executeUpdate();
+		} finally {pstm.close();}
 	}
 	
 	/**Находит по значению iD запись в базе данных и переписывает в нее значения полей из  item  */
 	public int store(Item  item)   throws SQLException
 	{	
-		for (int i = 1; i < columnNames.length ; i++)	{			
-			pstmUpdate.setObject(i, item.getVal(i));			
+		for (int i = 0, j = 0; i < columnNames.length ; i++){
+			if(i == PKPlace.intValue())
+				continue;
+			pstmUpdate.setObject(j+1, item.getVal(i));
+			j++;
 		}
-		pstmUpdate.setObject(columnNames.length , item.getVal(0));
+		pstmUpdate.setObject(columnNames.length , item.getId());
 		return  pstmUpdate.executeUpdate();
 	}
+	
 	/**Находит по значению rowiD запись в базе данных и переписывает в нее значения полей из  item  */
 	public int storebyRowId(Item  item)   throws SQLException
 	{	
 		for (int i = 0; i < columnNames.length ; i++)	{			
 			pstmUpdateByRowId.setObject(i+1, item.getVal(i));			
 		}
-		pstmUpdateByRowId.setString(columnNames.length, item.getRowId());
+		pstmUpdateByRowId.setString(columnNames.length+1, item.getRowId());
 		return  pstmUpdateByRowId.executeUpdate();
 	}
 	
@@ -340,6 +345,9 @@ public class DAO {
 		return pstmChangeID.executeUpdate();
 	}
 	
+	public Item getEmptyItem(){
+		return new Item(columnNames.length, PKPlace);
+	}
 	
 	 public void close() {
 		   try
@@ -351,10 +359,8 @@ public class DAO {
 				pstmSearchByRowId.close();
 				pstmDelete.close(); 
 				pstmDeleteByRowId.close();
-				pstmChangeID.close();
-				
-				stmt.close();
-			   
+				pstmChangeID.close();				
+				stmt.close();			   
 		   }
 		   catch (Exception e)
 		   {

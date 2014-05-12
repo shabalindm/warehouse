@@ -195,7 +195,7 @@ public class TableViewer extends JFrame {
 			List <String []> insertedRows = new ArrayList<>();
 			for (int i = 0; i < newRowsModel.getRowCount(); i++){
 				for( String s : newRowsModel.getRowAt(i)){ 
-					if ( s != null && !s.matches("\\s+")){ // идем по записи и ищем в ней нулевое или состоящее из одних пробелов значение
+					if ( s != null && !s.matches("\\s*")){ // идем по записи и ищем в ней нулевое или состоящее из одних пробелов значение
 						if(insertedRows.add(newRowsModel.getRowAt(i)));
 						break;
 					}//if

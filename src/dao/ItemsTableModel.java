@@ -50,7 +50,10 @@ public class ItemsTableModel extends AbstractTableModel{
 	public void updateCache()  {
 			Statement stmt = null;
 			ResultSet rs = null;
-			String sql = "select * from " + dao.getTableName() +" "  + whereCond;
+			String sql = "select ";
+			for (String column : dao.getColumnNames())
+				sql += column + ", ";
+			sql += "ROWID" + " from " + dao.getTableName() + " " + whereCond;
 			System.out.println(sql);
 			try{			
 				stmt = dao.getConnection().createStatement();
@@ -59,8 +62,8 @@ public class ItemsTableModel extends AbstractTableModel{
 				cache.clear();
 				//выбираем данные из результирующего набора в кеш
 				while (rs.next()){
-					Item item = new Item(null);
-					item.pollFieldsFromResultSet(rs, dao.getColumnNames());
+					Item item = dao.getEmptyItem();
+					item.pollFieldsFromRSRowID(rs, dao.getColumnNames(), "ROWID");
 					cache.add(item);
 				}	
 			} catch (SQLException e) {
@@ -70,7 +73,8 @@ public class ItemsTableModel extends AbstractTableModel{
 			}		
 
 		finally{ fireTableDataChanged();
-			try {stmt.close();
+			try {rs.close();
+				stmt.close();
 		} catch (SQLException e) {	
 			e.printStackTrace();
 		}}
@@ -106,9 +110,8 @@ public class ItemsTableModel extends AbstractTableModel{
 	public void addRows(List<String[]> records) {
 		try {
 			while (records.size() > 0){
-				Item item = new Item(null);
+				Item item = dao.getEmptyItem();
 				String[] record = records.get(0);
-				item.setSize(record.length);
 				for (int i = 0; i<record.length; i++ ){					
 					if (java.util.Date.class.isAssignableFrom(dao.getColumnClasses()[i]) && 
 							record[i] != null && !record[i].matches("\\s*") ){
@@ -146,27 +149,19 @@ public class ItemsTableModel extends AbstractTableModel{
 					announce("Неправильный формат даты");
 					return;
 			}
-		
 		try{				
-			if (columnIndex == 0){
-				 dao.changeID(item.getId(), aValue);
-				 // Сохраняем item с обновленным ID
-				 item.setId(aValue);
-				 announce(null);
-			}
-			else{
-				item.setVal(columnIndex, aValue);			
-				dao.store(item);
-				announce(null);
-			}
+			item.setVal(columnIndex, aValue);			
+			dao.storebyRowId(item);
+			announce(null);
 
-		} catch (SQLException e){	
+		} catch (SQLException e){
+			
 			announce(e.getMessage());
 			e.printStackTrace();
 		}	
 		finally {
 			try {
-				dao.refresh(item);
+				dao.refreshByRowID(item);
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -183,7 +178,7 @@ public class ItemsTableModel extends AbstractTableModel{
 		try{
 			for(int rowNum : deleted ){
 				Item item = cache.get(rowNum);
-				dao.delete(item);
+				dao.deleteByRowId(item);
 				list.add(item); // после удаления добавляем в список успешно удаленных из БД
 				announce(null);
 			}

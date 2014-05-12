@@ -25,7 +25,7 @@ public class Main {
 		conn.setAutoCommit(false);
 		Statement stmt = conn.createStatement();
 		ResultSet rs = stmt.executeQuery("Select * from ЙНЛОКЕЙРСЧЫХЕ");
-		final DAO dao = new DAO(conn, "йнлокейрсчыхе", "йнлок_ID");
+		final DAO dao = new DAO(conn, "йнлокейрсчыхе", "рс");
 		EventQueue.invokeLater(new Runnable()
          {
             public void run()
