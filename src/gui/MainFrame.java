@@ -170,6 +170,7 @@ public class MainFrame extends JFrame {
 	        		final DAO dao = new DAO(conn, tableName, null);				
 	        		final TableEditPanel  tEpanel = new TableEditPanel(dao, commitedEnclosure);
 	        		tEpanel.commitedEnclosure = commitedEnclosure;
+	        		tEpanel.setMessageListener(msgListener);
 	        		int i = tabbedPane.getTabCount();
 	        		Component c = tabbedPane.add(tableName, tEpanel);
 	        		c.setName(tableName);
@@ -220,18 +221,19 @@ public class MainFrame extends JFrame {
 	}
 	/**Обновляет содержимое открытых таблиц*/
 	private void refreshTabs() {
-		for(Component c :tabbedPane.getComponents()){
-			if (c instanceof TableEditPanel)
-				((TableEditPanel)c).tableViewModel.updateCache();		
-		}
-		
+		new Thread(){
+			public void run(){
+				for(Component c :tabbedPane.getComponents())
+					if (c instanceof TableEditPanel)
+						((TableEditPanel)c).tableViewModel.updateCache();				
+		}}.start();
 	}
 
 	/**Создает менюшки*/
 	private void initMenu() {
         JMenuBar menuBar = new JMenuBar();
         //create Options menu
-        JMenuItem tabComponentsItem = new JMenuItem("Зафиксировать");
+        JMenuItem tabComponentsItem = new JMenuItem("Сохранить изменения");
        tabComponentsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK));
         tabComponentsItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {

@@ -14,13 +14,14 @@ import java.util.List;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.table.AbstractTableModel;
 
-public class ItemsTableModel extends AbstractTableModel{
+public class ItemsTableModel extends AbstractItemsTableModel{
 	private List<Item> cache  = new ArrayList<>();
 	private int rowCount;
 	private String whereCond = "";
 	private DAO dao;
 	private MessageListener listener;
 	DateFormat f;
+	ResultSet rs;
 	
 	public ItemsTableModel(DAO dao)  {
 		this.dao = dao;
@@ -50,37 +51,53 @@ public class ItemsTableModel extends AbstractTableModel{
 
 	public void updateCache()  {
 			Statement stmt = null;
-			ResultSet rs = null;
 			String sql = "select ";
 			for (String column : dao.getColumnNames())
 				sql += column + ", ";
 			sql += "ROWID" + " from " + dao.getTableName() + " " + whereCond;
 			System.out.println(sql);
-			try{			
-				stmt = dao.getConnection().createStatement();
-				rs = stmt.executeQuery(sql);
+			try{
+				stmt = dao.getConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+				ResultSet newrs = stmt.executeQuery(sql);
+				try {rs.close();} 
+				catch (Exception e){} // Закрываем предыдущий
+				rs = newrs;
 				// очищаем кэш
 				cache.clear();
+				// узнаем количество строк
+				if (!rs.last())
+					rowCount = 0;
+				else
+					rowCount =  rs.getRow();
+				rs.beforeFirst();
+				
 				//выбираем данные из результирующего набора в кеш
-				while (rs.next()){
-					Item item = dao.getEmptyItem();
-					item.pollFieldsFromRSRowID(rs, dao.getColumnNames(), "ROWID");
-					cache.add(item);
-				}	
+				readMore();
+				
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				announce(e.getMessage());
 				e.printStackTrace();
 			}		
 
-		finally{ fireTableDataChanged();
-			try {rs.close();
-				stmt.close();
-		} catch (SQLException e) {	
-			e.printStackTrace();
-		}}
+		finally{ fireTableDataChanged();}
 	}
 	
+
+	private void readMore() {
+		try{
+			int i = 0;
+		while (i < 10 && rs.next() ){
+			Item item = dao.getEmptyItem();
+			item.pollFieldsFromRSRowID(rs, dao.getColumnNames(), "ROWID");
+			cache.add(item);
+			i++;			
+		}
+		//System.out.println("Прочитано " +(i));
+		}catch (SQLException e){e.printStackTrace();}
+		
+		
+	}
 
 	@Override
 	public String getColumnName(int column) {
@@ -91,7 +108,7 @@ public class ItemsTableModel extends AbstractTableModel{
 
 	@Override
 	public int getRowCount() {
-		return cache.size();
+		return rowCount;
 	}
 
 	@Override
@@ -101,7 +118,11 @@ public class ItemsTableModel extends AbstractTableModel{
 
 	@Override
 	public Object getValueAt(int rowIndex, int columnIndex) {
-		 Object val = cache.get(rowIndex).getVal(columnIndex);
+		while(rowIndex >= cache.size()){
+		//	System.out.println("Запрошен индекс " + rowIndex + " Размер кеша " + cache.size() + "всего " + rowCount);
+			readMore();				
+			}
+		Object val = cache.get(rowIndex).getVal(columnIndex);
 		if (java.util.Date.class.isAssignableFrom(dao.getColumnClasses()[columnIndex]) && val != null )
 			val = f.format(val);			
 		return val;
@@ -190,6 +211,12 @@ public class ItemsTableModel extends AbstractTableModel{
 		}
 		finally{
 			cache.removeAll(list);
+			rowCount -= list.size(); // умненьшаме число сток в таблице
 		}
 	}
+	public void close(){try {
+		rs.close();
+	} catch (SQLException e) {
+		e.printStackTrace();
+	}}
 }
