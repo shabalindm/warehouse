@@ -35,15 +35,20 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 
 import components.ButtonTabComponent;
+import dao.AbstractItemsTableModel;
 import dao.DAO;
+import dao.ItemsTableModel;
 import dao.MessageListener;
+import dao.Panel1;
 import dao.TableEditPanel;
 import dao.TableViewer;
 
 public class MainFrame extends JFrame {
-	public boolean [] commitedEnclosure = new boolean[]{true};	//массив с одной ячейкой, в которую будет писаться, имеются ли незакоммиченные изменения
+	public static boolean commited = true; 
 	Connection conn;
 	
 	JList<String> tables;
@@ -58,8 +63,7 @@ public class MainFrame extends JFrame {
 		public void setText(String text) {
 			info.setText(text);
 			
-		}};
-	
+		}};	
 
 	
 	/**Конструктор*/
@@ -167,23 +171,22 @@ public class MainFrame extends JFrame {
 	        	
 	        	//Создаем панельку с таблицами и кнопками
 	        	try {
-	        		final DAO dao = new DAO(conn, tableName, null);				
-	        		final TableEditPanel  tEpanel = new TableEditPanel(dao, commitedEnclosure);
-	        		tEpanel.commitedEnclosure = commitedEnclosure;
-	        		tEpanel.setMessageListener(msgListener);
-	        		int i = tabbedPane.getTabCount();
-	        		Component c = tabbedPane.add(tableName, tEpanel);
-	        		c.setName(tableName);
-	        		tabbedPane.setSelectedComponent(c); 
+	        		final DAO dao = new DAO(conn, tableName, null);	
+	        		// создаем модель основной таблицы
+	        		ItemsTableModel itm = new ItemsTableModel(dao);
+	        		itm.setMessageListener(msgListener);	
+	        		itm.updateCache();
+	        		itm.addTableModelListener( new TableModelListener(){
+	    			@Override
+	    			public void tableChanged(TableModelEvent e) {
+	    				commited = false;
+	    			}});
 	        		
-	        		// Добавляем ко вкладке крестик, переопределяем операцию закрытия
-	        		tabbedPane.setTabComponentAt(i, new ButtonTabComponent(tabbedPane){
-	        			@Override
-	        			public void removeTab(int i) {
-	 	        				dao.close();
-        						super.removeTab(i);
-        						}
-	        		});
+	        		// создаем саму панельку
+	        		final TableEditPanel  tEpanel = new TableEditPanel(itm);
+	        		
+	        		//размещаем ее в новой вкладке
+	        		putInTab(tableName, tEpanel);
  		
 	        	} catch (SQLException e) {
 	        		e.printStackTrace();
@@ -193,12 +196,33 @@ public class MainFrame extends JFrame {
 
 	        } 
 	    }
+		
 	}
 	
+
+	/**Размещает созданную панель в новой закрывающейся вкладке
+	 * @param tableName
+	 * @param tEpanel
+	 */
+	private void putInTab(String tabName, final TableEditPanel tEpanel) {
+		int i = tabbedPane.getTabCount();
+		Component c = tabbedPane.add(tabName, tEpanel);
+		c.setName(tabName);
+		tabbedPane.setSelectedComponent(c); 
+		
+		// Добавляем ко вкладке крестик, переопределяем операцию закрытия
+		tabbedPane.setTabComponentAt(i, new ButtonTabComponent(tabbedPane){
+			@Override
+			public void removeTab(int i) {
+				tEpanel.close();
+				super.removeTab(i);
+				}
+		});
+	}
 	/** Слушатель, проверяющий, зафиксированы ли изменения в базе и выводящий диалог с предложеним зафиксировать*/
 	class CloseOperationListener extends WindowAdapter{
 		public void windowClosing(WindowEvent e){
-			if (!commitedEnclosure[0]){ 
+			if (!commited){ 
 				int result = JOptionPane.showConfirmDialog((Component) null, "Сохранить измененные данные?",
 						"alert", JOptionPane.YES_NO_CANCEL_OPTION);
 				if (result == 0){
@@ -219,6 +243,7 @@ public class MainFrame extends JFrame {
 
 		}
 	}
+	
 	/**Обновляет содержимое открытых таблиц*/
 	private void refreshTabs() {
 		new Thread(){
@@ -233,29 +258,15 @@ public class MainFrame extends JFrame {
 	private void initMenu() {
         JMenuBar menuBar = new JMenuBar();
         //create Options menu
-        JMenuItem tabComponentsItem = new JMenuItem("Сохранить изменения");
-       tabComponentsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK));
-        tabComponentsItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                try {
-					conn.commit();
-					refreshTabs();
-					commitedEnclosure[0] = true;
-				} catch (SQLException e1) {
-					e1.printStackTrace();
-				}
-                }
+       JMenuItem saveItem = new JMenuItem("Сохранить изменения");
+       saveItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK));
 
-			
-            
-        });
-        JMenuItem scrollLayoutItem = new JMenuItem("Откатить");
-       // scrollLayoutItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.ALT_MASK));
-        scrollLayoutItem.addActionListener(new ActionListener() {
+       JMenuItem rollback = new JMenuItem("Откатить");
+        rollback.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
         		try {
 					conn.rollback();
-					commitedEnclosure[0] = true;
+					commited = true;
 					refreshTabs();
 				} catch (SQLException e1) {
 					e1.printStackTrace();
@@ -263,10 +274,28 @@ public class MainFrame extends JFrame {
         	}
         });
         JMenu optionsMenu = new JMenu("Соединение");
-        optionsMenu.add(tabComponentsItem);
-        optionsMenu.add(scrollLayoutItem);
+        optionsMenu.add(saveItem);
+        optionsMenu.add(rollback);
         menuBar.add(optionsMenu);
+        
+ /*------------------------------------------------------------------------*/
+        JMenuItem insertItem1 = new JMenuItem("Ввод спецификаций");
+        
+        JMenu insertMenu = new JMenu("Формы ввода");
+        insertMenu.add(insertItem1);
+        insertItem1.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {        		     			
+        			TableEditPanel tEPanel = new Panel1(conn);
+        			tEPanel.tableViewModel.setMessageListener(msgListener);
+        			putInTab("Ввод спецификаций", tEPanel);   
+        			
+        	}           
+        });
+        menuBar.add(insertMenu);
+
+        
         setJMenuBar(menuBar);
+        
     }
 
 	public static void main(String[] args) {
@@ -279,7 +308,6 @@ public class MainFrame extends JFrame {
               frame.setTitle("*****");
               frame.setLocationByPlatform(true);
               frame.setSize(400, 400);
-              //frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
               frame.setVisible(true);
            }
         });

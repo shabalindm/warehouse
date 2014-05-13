@@ -1,90 +1,40 @@
 package dao;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import javax.swing.ScrollPaneConstants;
-import javax.swing.table.AbstractTableModel;
+public class ItemsTableModel extends AbstractItemsTableModel<Item>{
 
-public class ItemsTableModel extends AbstractItemsTableModel{
-	private List<Item> cache  = new ArrayList<>();
-	private int rowCount;
-	private String whereCond = "";
-	private DAO dao;
-	private MessageListener listener;
-	DateFormat f;
-	ResultSet rs;
-	
+	public DAO dao;
 	public ItemsTableModel(DAO dao)  {
 		this.dao = dao;
+		conn  = dao.getConnection();
 	}
-	
-	public void setMessageListener(MessageListener listener){
-		this.listener = listener;
-	}
-	
-	private void announce(String msg){
-		if (listener != null)
-			listener.setText(msg);		
-	}
+		
 	
 	public DAO getDAO() {
 		return dao;
 	}
 	
 		
-	public String getWhereCond() {
-		return whereCond;
-	}
-
-	public void setWhereCond(String whereCond) {
-		this.whereCond = whereCond;
-	}
-
-	public void updateCache()  {
-			Statement stmt = null;
-			String sql = "select ";
-			for (String column : dao.getColumnNames())
-				sql += column + ", ";
-			sql += "ROWID" + " from " + dao.getTableName() + " " + whereCond;
-			System.out.println(sql);
-			try{
-				stmt = dao.getConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-				ResultSet newrs = stmt.executeQuery(sql);
-				try {rs.close();} 
-				catch (Exception e){} // Закрываем предыдущий
-				rs = newrs;
-				// очищаем кэш
-				cache.clear();
-				// узнаем количество строк
-				if (!rs.last())
-					rowCount = 0;
-				else
-					rowCount =  rs.getRow();
-				rs.beforeFirst();
-				
-				//выбираем данные из результирующего набора в кеш
-				readMore();
-				
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				announce(e.getMessage());
-				e.printStackTrace();
-			}		
-
-		finally{ fireTableDataChanged();}
-	}
 	
+	 String getSQL(){		
+		String sql = "select ";
+		for (String column : dao.getColumnNames())
+			sql += column + ", ";
+		sql += "ROWID" + " from " + dao.getTableName() + " " + whereCond;
+		System.out.println(sql);
+		return( sql);		 
+	 }
+	 
 
-	private void readMore() {
+	void readMore() {
 		try{
 			int i = 0;
 		while (i < 10 && rs.next() ){
@@ -106,11 +56,7 @@ public class ItemsTableModel extends AbstractItemsTableModel{
 	}
 
 
-	@Override
-	public int getRowCount() {
-		return rowCount;
-	}
-
+	
 	@Override
 	public int getColumnCount() {
 		return dao.getColumnNames().length;
@@ -196,26 +142,22 @@ public class ItemsTableModel extends AbstractItemsTableModel{
 		return true;
 	}	
 	
-	public void deleteRows(int [] deleted) {		
-		ArrayList<Item> list = new ArrayList<>();
-		try{
-			for(int rowNum : deleted ){
-				Item item = cache.get(rowNum);
-				dao.deleteByRowId(item);
-				list.add(item); // после удаления добавляем в список успешно удаленных из БД
-				announce(null);
-			}
-		} catch (SQLException e) {
-			announce(e.getMessage());
-			e.printStackTrace();
-		}
-		finally{
-			cache.removeAll(list);
-			rowCount -= list.size(); // умненьшаме число сток в таблице
-		}
+	
+	/**
+	 * @param item
+	 * @param list
+	 * @throws SQLException
+	 */
+	protected void deleteFromDBAndAddToList(Item item, ArrayList<Item> list)
+			throws SQLException {
+		dao.deleteByRowId(item);
+		list.add(item); // после удаления добавляем в список успешно удаленных из БД
 	}
+	
+	
 	public void close(){try {
 		rs.close();
+		dao.close();
 	} catch (SQLException e) {
 		e.printStackTrace();
 	}}

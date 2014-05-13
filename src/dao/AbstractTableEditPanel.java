@@ -1,6 +1,5 @@
 package dao;
 
-
 import gui.MainFrame;
 
 import java.awt.BorderLayout;
@@ -11,7 +10,6 @@ import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -34,18 +32,18 @@ import javax.swing.event.TableColumnModelListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
-import dao.AbstractTableEditPanel.EJTable;
-import dao.AbstractTableEditPanel.TableColumnWidhtListener;
-import dao.AbstractTableEditPanel.deleteBtmListener;
-import dao.AbstractTableEditPanel.insertBtmListener;
-import dao.AbstractTableEditPanel.refreshBtnistener;
-import dao.AbstractTableEditPanel.whereBtnListener;
+import dao.TableEditPanel.EJTable;
+import dao.TableEditPanel.TableColumnWidhtListener;
+import dao.TableEditPanel.deleteBtmListener;
+import dao.TableEditPanel.insertBtmListener;
+import dao.TableEditPanel.refreshBtnistener;
+import dao.TableEditPanel.whereBtnListener;
 
-public class TableEditPanel extends JPanel {
+public abstract class AbstractTableEditPanel extends JPanel {
 	
 	JTable tableView;	
 	JTable newRows;
-	public AbstractItemsTableModel tableViewModel;
+	ItemsTableModel tableViewModel;
 	ListOfArraysModel newRowsModel;
 
 	JButton insertBtn; 
@@ -90,7 +88,7 @@ public class TableEditPanel extends JPanel {
 	}
 
 	/**Конструктор*/ 
-	 public TableEditPanel(AbstractItemsTableModel tableViewModel) {
+	 public AbstractTableEditPanel(ItemsTableModel tableViewModel) {
 		this.tableViewModel = tableViewModel;
 		
 		initTables();		
@@ -202,7 +200,31 @@ public class TableEditPanel extends JPanel {
 	}//deleteBtmListener
 
 
-
+	/** Слушатель кнопки "Сохранить"*/
+//	class SaveBtnListener implements ActionListener  {			
+//		@Override
+//		public void actionPerformed(ActionEvent e) {
+//			try {
+//				dao.getConnection().commit();
+//				commitedEnclosure[0] = true;
+//			} catch (SQLException e1) {
+//				e1.printStackTrace();
+//				information.setText(e1.getMessage());
+//			}	}}
+//	
+//	/** Слушатель кнопки "Откатить"*/
+//	class rollBackListener implements ActionListener {			
+//		@Override
+//		public void actionPerformed(ActionEvent e) {
+//			try {
+//				dao.getConnection().rollback();
+//				commitedEnclosure[0] = true;
+//			} catch (SQLException e1) {
+//				e1.printStackTrace();
+//				information.setText(e1.getMessage());
+//			} 	
+//		initTables(dao);}}
+	
 	/** Слушатель кнопки "Условия"*/
 	 class whereBtnListener implements ActionListener {
 		
@@ -261,14 +283,23 @@ public class TableEditPanel extends JPanel {
 	
 	/**Считывает данные из базы, создает на их основе новые таблицы и и размещает их во фрейме*/	
 	@SuppressWarnings("unchecked")
-	private void initTables() {			
+	private void initTables() {		
+//		tableViewModel = new ItemsTableModel(dao);
+//		tableViewModel.setMessageListener(information);	
+//		tableViewModel.updateCache();
+		
 		tableView = new JTable(tableViewModel);		
 		tableView.getColumnModel().addColumnModelListener( new TableColumnWidhtListener() );
 		tableView.setAutoCreateRowSorter(true);
 		tableView.setCellSelectionEnabled(true);
 	
 		tableView.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-	
+//		tableViewModel.addTableModelListener( new TableModelListener(){
+//			@Override
+//			public void tableChanged(TableModelEvent e) {
+//				MainFrame.commited = false;
+//			}});		
+//		
 		
 		newRowsModel = new ListOfArraysModel(tableViewModel.getColumnCount());
 		newRows = new EJTable(newRowsModel);
@@ -320,11 +351,6 @@ public class TableEditPanel extends JPanel {
 		btn.addActionListener(actionListener);
 		
 		return btn;
-	}
-
-	public void close() {
-		tableViewModel.close();
-		
 	}
 
 
