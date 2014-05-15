@@ -12,17 +12,18 @@ import java.util.List;
 public class ItemsTableModel extends AbstractItemsTableModel<Item>{
 
 	public DAO dao;
+	
 	public ItemsTableModel(DAO dao)  {
 		this.dao = dao;
 		conn  = dao.getConnection();
+		updateCache();
 	}
 		
 	
 	public DAO getDAO() {
 		return dao;
 	}
-	
-		
+			
 	
 	 String getSQL(){		
 		String sql = "select ";
@@ -34,17 +35,14 @@ public class ItemsTableModel extends AbstractItemsTableModel<Item>{
 	 }
 	 
 
-	void readMore() {
+	void pollToCache(int row) {
 		try{
-			int i = 0;
-		while (i < 10 && rs.next() ){
+			rs.absolute(row+1);
 			Item item = dao.getEmptyItem();
 			item.pollFieldsFromRSRowID(rs, dao.getColumnNames(), "ROWID");
-			cache.add(item);
-			i++;			
-		}
-		//System.out.println("Прочитано " +(i));
-		}catch (SQLException e){e.printStackTrace();}
+			cache.put(row, item);						
+		}		
+		catch (SQLException e){e.printStackTrace();}
 		
 		
 	}
@@ -63,12 +61,13 @@ public class ItemsTableModel extends AbstractItemsTableModel<Item>{
 	}
 
 	@Override
-	public Object getValueAt(int rowIndex, int columnIndex) {
-		while(rowIndex >= cache.size()){
-		//	System.out.println("Запрошен индекс " + rowIndex + " Размер кеша " + cache.size() + "всего " + rowCount);
-			readMore();				
-			}
-		Object val = cache.get(rowIndex).getVal(columnIndex);
+	public Object getValueAt(int rowIndex, int columnIndex) {		
+		Item item = cache.get(rowIndex);
+		if(item == null){
+			pollToCache(rowIndex);	
+			item = cache.get(rowIndex);
+		}
+		Object val = item.getVal(columnIndex);
 		if (java.util.Date.class.isAssignableFrom(dao.getColumnClasses()[columnIndex]) && val != null )
 			val = f.format(val);			
 		return val;
@@ -143,22 +142,19 @@ public class ItemsTableModel extends AbstractItemsTableModel<Item>{
 	}	
 	
 	
-	/**
-	 * @param item
-	 * @param list
-	 * @throws SQLException
-	 */
-	protected void deleteFromDBAndAddToList(Item item, ArrayList<Item> list)
-			throws SQLException {
-		dao.deleteByRowId(item);
-		list.add(item); // после удаления добавляем в список успешно удаленных из БД
-	}
 	
-	
-	public void close(){try {
-		rs.close();
+	public void close(){
+		super.close();
 		dao.close();
-	} catch (SQLException e) {
-		e.printStackTrace();
-	}}
+	}
+
+
+	@Override
+	void deleteFromDB(Item item) throws SQLException {
+		dao.deleteByRowId(item);
+		
+	}
+
+
+	
 }

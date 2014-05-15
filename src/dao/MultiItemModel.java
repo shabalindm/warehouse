@@ -9,11 +9,24 @@ import java.util.List;
 import dao.AbstractItemsTableModel;
 
 public abstract class MultiItemModel extends AbstractItemsTableModel<Item[]> {
-	DAO [] daos;
-	public int [][] columnsMap; 	// 
-
+	protected DAO [] daos;
+	protected int [][] columnsMap; 	// 
 	
+	protected DAO getDAO (int columnNum){
+		return daos[columnsMap[columnNum][0]];		
+	}
+	protected Item getItem (int rowIndex, int columnIndex){
+		Item[] items = cache.get(rowIndex);
+		if(items == null){
+			pollToCache(rowIndex);	
+			items = cache.get(rowIndex);
+		}
+		return items[columnsMap[columnIndex][0]];		
+	}
 	
+	protected int getFieldNum(int columnNum){
+		return columnsMap[columnNum][1];		
+	}
 
 	@Override
 	public int getColumnCount() {
@@ -22,42 +35,26 @@ public abstract class MultiItemModel extends AbstractItemsTableModel<Item[]> {
 
 	@Override
 	public Object getValueAt(int rowIndex, int columnIndex) {
-		while(rowIndex >= cache.size()){
-			//	System.out.println("Запрошен индекс " + rowIndex + " Размер кеша " + cache.size() + "всего " + rowCount);
-			readMore();				
-		}
-		
-		int daoNum = columnsMap[columnIndex][0];
-		int fieldNum = columnsMap[columnIndex][1];
-		Object val = cache.get(rowIndex)[daoNum].getVal(fieldNum);
-		if (java.util.Date.class.isAssignableFrom(daos[daoNum].getColumnClasses()[fieldNum]) && val != null )
+		Object val = getItem(rowIndex, columnIndex).getVal(getFieldNum(columnIndex));
+		if (java.util.Date.class.isAssignableFrom(getDAO(columnIndex).getColumnClasses()[getFieldNum(columnIndex)]) && val != null )
 			val = f.format(val);			
 		return val;
 	}
 
+	
 	@Override
-	String getSQL() {
-		// TODO Auto-generated method stub
-		return "Select * from КОМПЛЕКТУЮЩИЕ join СПЕЦИФИКАЦИЯ using КОМПЛ_ID";
-		
-	}
-
-	@Override
-	void readMore() {
+	void pollToCache(int row) {
 		try{
-			int i = 0;
-		while (i < 10 && rs.next() ){
+			rs.absolute(row+1);
 			Item [] items = new Item[daos.length ];
 			for(int k = 0; k < daos.length; k++ ){
 				items[k] = daos[k].getEmptyItem();
 				items[k].pollFieldsFromResultSet(rs, daos[k].getColumnNames());
 			}
-			cache.add(items);
-			i++;
-		}
-		//System.out.println("Прочитано " +(i));
+			cache.put(row, items);
+			
 		}catch (SQLException e){e.printStackTrace();}
-		
+
 	}
 
 	@Override
@@ -81,7 +78,7 @@ public abstract class MultiItemModel extends AbstractItemsTableModel<Item[]> {
 						}
 					}		
 					else{ 				
-						items[daoNum].setVal(i, record[i]);}
+						items[daoNum].setVal(fieldNum, record[i]);}
 				}
 
 				// добавляем в базу
@@ -106,13 +103,60 @@ public abstract class MultiItemModel extends AbstractItemsTableModel<Item[]> {
 
 
 	@Override
-	public void close() {
-		try {
-			rs.close();
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
+	String getSQL() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	void deleteFromDB(Item[] item) throws SQLException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public String getColumnName(int column) {
+		int daoNum = columnsMap[column][0];
+		int fieldNum = columnsMap[column][1];
+		return  daos[daoNum].getColumnNames()[fieldNum];
+	}
+
+	public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+	    int daoNum = columnsMap[columnIndex][0];
+		int fieldNum = getFieldNum(columnIndex);
+		DAO dao = getDAO(columnIndex);
+		Item item = getItem(rowIndex, columnIndex);		
+		
+		if (java.util.Date.class.isAssignableFrom(dao.getColumnClasses()[fieldNum])&& aValue != null )
+			try {
+				aValue = new Timestamp((((Date)f.parseObject((String) aValue)).getTime()));
+			} catch (ParseException e1) {
+				announce("Неправильный формат даты");
+				return;
+			}
+		try{				
+			item.setVal(fieldNum, aValue);			
+			dao.store(item);
+			announce(null);
+			fireTableCellUpdated(rowIndex, columnIndex);
+
+		} catch (SQLException e){
+
+			announce(e.getMessage());
 			e.printStackTrace();
+		}	
+		finally {
+			try {
+				dao.refresh(item);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 		}
+	}
+	
+	@Override
+	public void close() {
+		super.close();
 		for (DAO dao:daos)
 			dao.close();
 	}

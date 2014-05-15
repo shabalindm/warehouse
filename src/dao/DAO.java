@@ -352,15 +352,15 @@ public class DAO {
 	 public void close() {
 		   try
 		   {			   
-			   	pstmInsert.close();
-				pstmUpdate.close();
-				pstmUpdateByRowId.close();
-				pstmSearchById.close();
-				pstmSearchByRowId.close();
-				pstmDelete.close(); 
-				pstmDeleteByRowId.close();
-				pstmChangeID.close();				
-				stmt.close();			   
+			   if (pstmInsert != null)			pstmInsert.close();
+			   if (pstmUpdate != null)			pstmUpdate.close();
+			   if (pstmUpdateByRowId != null)	pstmUpdateByRowId.close();
+			   if (pstmSearchById != null)		pstmSearchById.close();
+			   if (pstmSearchByRowId != null)	pstmSearchByRowId.close();
+			   if (pstmDelete != null)			pstmDelete.close(); 
+			   if (pstmDeleteByRowId != null)	pstmDeleteByRowId.close();
+			   if (pstmChangeID != null)		pstmChangeID.close();				
+			   if (stmt != null)				stmt.close();			   
 		   }
 		   catch (Exception e)
 		   {

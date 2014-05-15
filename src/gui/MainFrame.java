@@ -155,16 +155,16 @@ public class MainFrame extends JFrame {
 
 	
 
-
+/** Слушатель, который по двойному щелчку мыши на таблице из списка открывает ее в новой вкладке*/
 	private class MouseDoubleClickLstn extends MouseAdapter {
 	    public void mouseClicked(MouseEvent evt) {
 	        JList list = (JList)evt.getSource();
 	        if (evt.getClickCount() == 2) {
 	        	int index = list.locationToIndex(evt.getPoint());
-	        	System.out.println(list.getModel().getElementAt(index));
 	        	String tableName = (String) list.getModel().getElementAt(index);
+	        	// Если редактор этой таблицы (представления) уже открыт, то нужно только перевести на него фокус
 	        	for (Component c : tabbedPane.getComponents())
-	        		if (tableName.equals(c.getName())){ // Редактор этой таблицы (представления) уже открыт
+	        		if (tableName.equals(c.getName())){ 
 	        			tabbedPane.setSelectedComponent(c);
 	        			return;
 	        		}
@@ -173,17 +173,16 @@ public class MainFrame extends JFrame {
 	        	try {
 	        		final DAO dao = new DAO(conn, tableName, null);	
 	        		// создаем модель основной таблицы
-	        		ItemsTableModel itm = new ItemsTableModel(dao);
-	        		itm.setMessageListener(msgListener);	
-	        		itm.updateCache();
-	        		itm.addTableModelListener( new TableModelListener(){
+	        		ItemsTableModel model = new ItemsTableModel(dao);
+	        		model.setMessageListener(msgListener);	
+	        		model.addTableModelListener( new TableModelListener(){
 	    			@Override
 	    			public void tableChanged(TableModelEvent e) {
 	    				commited = false;
 	    			}});
 	        		
 	        		// создаем саму панельку
-	        		final TableEditPanel  tEpanel = new TableEditPanel(itm);
+	        		final TableEditPanel  tEpanel = new TableEditPanel(model);
 	        		
 	        		//размещаем ее в новой вкладке
 	        		putInTab(tableName, tEpanel);
@@ -273,10 +272,10 @@ public class MainFrame extends JFrame {
 				}
         	}
         });
-        JMenu optionsMenu = new JMenu("Соединение");
-        optionsMenu.add(saveItem);
-        optionsMenu.add(rollback);
-        menuBar.add(optionsMenu);
+        JMenu connectMenu = new JMenu("Соединение");
+        connectMenu.add(saveItem);
+        connectMenu.add(rollback);
+        menuBar.add(connectMenu);
         
  /*------------------------------------------------------------------------*/
         JMenuItem insertItem1 = new JMenuItem("Ввод спецификаций");
@@ -287,7 +286,13 @@ public class MainFrame extends JFrame {
         	public void actionPerformed(ActionEvent e) {        		     			
         			TableEditPanel tEPanel = new Panel1(conn);
         			tEPanel.tableViewModel.setMessageListener(msgListener);
-        			putInTab("Ввод спецификаций", tEPanel);   
+        			putInTab("Ввод спецификаций", tEPanel); 
+        			tEPanel.tableViewModel.addTableModelListener( new TableModelListener(){
+    	    			@Override
+    	    			public void tableChanged(TableModelEvent e) {
+    	    				commited = false;
+    	    			}});
+        			
         			
         	}           
         });

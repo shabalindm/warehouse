@@ -43,15 +43,17 @@ import dao.AbstractTableEditPanel.whereBtnListener;
 
 public class TableEditPanel extends JPanel {
 	
-	JTable tableView;	
-	JTable newRows;
 	public AbstractItemsTableModel tableViewModel;
-	ListOfArraysModel newRowsModel;
+	
+	private JTable tableView;	
+	private JTable newRows;
+	
+	private ListOfArraysModel newRowsModel;
 
-	JButton insertBtn; 
-	JButton deleteBtn;
-	JButton refreshBtn;
-	JButton setWhereBtn;	
+	private JButton insertBtn; 
+	private JButton deleteBtn;
+	private JButton refreshBtn;
+	private JButton setWhereBtn;	
 	private DAO dao;
 	
 	/**Слушатель, который следит за изменением порядка и ширины стобцов верхней таблицы и повторяет эти операции для нижней таблицы.
@@ -108,7 +110,7 @@ public class TableEditPanel extends JPanel {
 	 * @param btnPanel
 	 * @param splitPane
 	 */
-	protected void setupPanel(JPanel btnPanel, JSplitPane splitPane) {
+	private void setupPanel(JPanel btnPanel, JSplitPane splitPane) {
 		setLayout(new BorderLayout());
 		add(btnPanel, BorderLayout.NORTH);
 		add(splitPane, BorderLayout.CENTER);
@@ -117,7 +119,7 @@ public class TableEditPanel extends JPanel {
 	/**
 	 * @param splitPane
 	 */
-	protected void initSplitPane(JSplitPane splitPane) {
+	private void initSplitPane(JSplitPane splitPane) {
 		final JScrollPane upper = new JScrollPane(tableView);
 		final JScrollPane  down = new JScrollPane(newRows) ;
 		
@@ -142,9 +144,8 @@ public class TableEditPanel extends JPanel {
 		
 	}
 
-	/**
-	 * @param btnPanel 
-	 * 
+	/**Создает кнопки и размещает их на панели
+	 * @param btnPanel Панель, на которой эти кнопки размещаются. В принципе, ее можно нарисовать как угодно;
 	 */
 	protected void initBtnPanel(JPanel btnPanel) {
 		deleteBtn = makeButton("Удалить", null, new deleteBtmListener());
@@ -156,6 +157,21 @@ public class TableEditPanel extends JPanel {
 		btnPanel.add(deleteBtn);
 		btnPanel.add(refreshBtn);
 		btnPanel.add(setWhereBtn);
+	}
+
+	/**Создает таблицы таблицы JTable. Модель верхней, привязанной к базе, берется готовая. Mодель нижней - создается */	
+	private void initTables() {			
+		tableView = new JTable(tableViewModel);		
+		tableView.getColumnModel().addColumnModelListener( new TableColumnWidhtListener() );
+		tableView.setAutoCreateRowSorter(true);
+		tableView.setCellSelectionEnabled(true);	
+		tableView.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);	
+		
+		newRowsModel = new ListOfArraysModel(tableViewModel.getColumnCount());
+		newRows = new EJTable(newRowsModel);
+		newRows.setTableHeader(null);
+		newRows.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		newRows.setCellSelectionEnabled(true);	
 	}
 
 	
@@ -259,23 +275,6 @@ public class TableEditPanel extends JPanel {
 	}
 
 	
-	/**Считывает данные из базы, создает на их основе новые таблицы и и размещает их во фрейме*/	
-	@SuppressWarnings("unchecked")
-	private void initTables() {			
-		tableView = new JTable(tableViewModel);		
-		tableView.getColumnModel().addColumnModelListener( new TableColumnWidhtListener() );
-		tableView.setAutoCreateRowSorter(true);
-		tableView.setCellSelectionEnabled(true);
-	
-		tableView.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-	
-		
-		newRowsModel = new ListOfArraysModel(tableViewModel.getColumnCount());
-		newRows = new EJTable(newRowsModel);
-		newRows.setTableHeader(null);
-		newRows.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-		newRows.setCellSelectionEnabled(true);	
-	}
 	
 /** Это таблица, которая умеет вставлять данные и системного буфера при нажатии ctrl+V и удалять из по кнопке delete*/
 	class EJTable extends JTable implements KeyListener {

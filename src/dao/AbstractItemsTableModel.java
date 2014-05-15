@@ -8,12 +8,14 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import javax.swing.table.AbstractTableModel;
 
 public abstract class AbstractItemsTableModel<T> extends AbstractTableModel {
 	
-	List<T> cache  = new ArrayList<>();
+	Map<Integer, T> cache  = new TreeMap<>();
 	int rowCount;
 	String whereCond = "";
 	Connection conn;
@@ -62,7 +64,8 @@ public abstract class AbstractItemsTableModel<T> extends AbstractTableModel {
 					rowCount = 0;
 				else
 					rowCount =  rs.getRow();
-				rs.beforeFirst();				
+				rs.beforeFirst();	
+				System.out.println(rowCount);
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				announce(e.getMessage());
@@ -73,7 +76,7 @@ public abstract class AbstractItemsTableModel<T> extends AbstractTableModel {
 	}
 	
 /*Считывает из результирующего набора порцию результатов в кэш*/
-	abstract void readMore();
+	abstract void pollToCache(int row);
 
 
 	@Override
@@ -82,17 +85,17 @@ public abstract class AbstractItemsTableModel<T> extends AbstractTableModel {
 	}
 
 	
-	/** Создает новый item и записывает его в базу. Внимание - просто записывает, значение в кеше автоматически не появляется*/
+	/** Берет строчку, создает из нее item(s) и записывает его (их) в базу.
+	 *  Внимание - просто записывает, значение в кеше автоматически не появляется*/
 	public abstract void addRows(List<String[]> records); 
 	
 		
-	/** Удаляет из таблицы и из базы строки по заданному набору индексов сток  */
-	public void deleteRows(int [] deleted) {		
-		ArrayList<T> list = new ArrayList<>();
+	/** Удаляет из таблицы и из базы строки по заданному набору индексов строк  */
+	public void deleteRows(int [] deleted) {
 		try{
 			for(int rowNum : deleted ){
 				T item = cache.get(rowNum);
-				deleteFromDBAndAddToList(item, list);
+				deleteFromDB(item);
 				announce(null);
 			}
 		} catch (SQLException e) {
@@ -100,13 +103,19 @@ public abstract class AbstractItemsTableModel<T> extends AbstractTableModel {
 			e.printStackTrace();
 		}
 		finally{
-			cache.removeAll(list);
-			rowCount -= list.size(); // умненьшаме число сток в таблице
+			updateCache();
 		}
 	} 
 	
-	 abstract void deleteFromDBAndAddToList(T item, ArrayList<T> list) throws SQLException  ;
+	abstract void deleteFromDB(T item) throws SQLException  ;
 	
-	public abstract void close();
+	public  void close(){
+		try {
+			rs.close();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	};
 	
 }
