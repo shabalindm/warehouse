@@ -39,16 +39,15 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
 import components.ButtonTabComponent;
-import dao.AbstractItemsTableModel;
+import components.ItemsModel;
+import components.MessageListener;
+import components.StateListener;
+import components.TableEditPanel;
 import dao.DAO;
-import dao.ItemsTableModel;
-import dao.MessageListener;
-import dao.Panel1;
-import dao.TableEditPanel;
-import dao.TableViewer;
+
 
 public class MainFrame extends JFrame {
-	public static boolean commited = true; 
+	public  boolean commited = true; 
 	Connection conn;
 	
 	JList<String> tables;
@@ -64,6 +63,14 @@ public class MainFrame extends JFrame {
 			info.setText(text);
 			
 		}};	
+		
+	/** Слушатель состояния соединения.*/
+		StateListener stateListener = new StateListener() {		
+		@Override
+		public void setState(boolean state) {
+			commited = state;			
+		}
+	};
 
 	
 	/**Конструктор*/
@@ -171,18 +178,13 @@ public class MainFrame extends JFrame {
 	        	
 	        	//Создаем панельку с таблицами и кнопками
 	        	try {
-	        		final DAO dao = new DAO(conn, tableName, null);	
+	        		DAO dao = new DAO(conn, tableName, null);	
 	        		// создаем модель основной таблицы
-	        		ItemsTableModel model = new ItemsTableModel(dao);
-	        		model.setMessageListener(msgListener);	
-	        		model.addTableModelListener( new TableModelListener(){
-	    			@Override
-	    			public void tableChanged(TableModelEvent e) {
-	    				commited = false;
-	    			}});
+	        		ItemsModel model = new ItemsModel(dao);
+	        		model.setMessageListener(msgListener);
 	        		
 	        		// создаем саму панельку
-	        		final TableEditPanel  tEpanel = new TableEditPanel(model);
+	        		TableEditPanel  tEpanel = new TableEditPanel(model);
 	        		
 	        		//размещаем ее в новой вкладке
 	        		putInTab(tableName, tEpanel);
@@ -243,15 +245,7 @@ public class MainFrame extends JFrame {
 		}
 	}
 	
-	/**Обновляет содержимое открытых таблиц*/
-	private void refreshTabs() {
-		new Thread(){
-			public void run(){
-				for(Component c :tabbedPane.getComponents())
-					if (c instanceof TableEditPanel)
-						((TableEditPanel)c).tableViewModel.updateCache();				
-		}}.start();
-	}
+	
 
 	/**Создает менюшки*/
 	private void initMenu() {
@@ -259,14 +253,13 @@ public class MainFrame extends JFrame {
         //create Options menu
        JMenuItem saveItem = new JMenuItem("Сохранить изменения");
        saveItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK));
-
        JMenuItem rollback = new JMenuItem("Откатить");
         rollback.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
         		try {
 					conn.rollback();
 					commited = true;
-					refreshTabs();
+					//refreshTabs();
 				} catch (SQLException e1) {
 					e1.printStackTrace();
 				}
@@ -284,15 +277,15 @@ public class MainFrame extends JFrame {
         insertMenu.add(insertItem1);
         insertItem1.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {        		     			
-        			TableEditPanel tEPanel = new Panel1(conn);
-        			tEPanel.tableViewModel.setMessageListener(msgListener);
-        			putInTab("Ввод спецификаций", tEPanel); 
-        			tEPanel.tableViewModel.addTableModelListener( new TableModelListener(){
-    	    			@Override
-    	    			public void tableChanged(TableModelEvent e) {
-    	    				commited = false;
-    	    			}});
-        			
+//        			TableEditPanel tEPanel = new Panel1(conn);
+//        			tEPanel.tableViewModel.setMessageListener(msgListener);
+//        			putInTab("Ввод спецификаций", tEPanel); 
+//        			tEPanel.tableViewModel.addTableModelListener( new TableModelListener(){
+//    	    			@Override
+//    	    			public void tableChanged(TableModelEvent e) {
+//    	    				commited = false;
+//    	    			}});
+//        			
         			
         	}           
         });
