@@ -1,6 +1,7 @@
 package components;
 
 import java.sql.SQLException;
+import java.util.Arrays;
 
 import dao.DAO;
 import dao.Item;
@@ -69,7 +70,9 @@ public class ItemsModel extends AbstractItemsTableModel<Item>{
 	public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
 		Item item = getRow(rowIndex);				
 		item.setVal(columnIndex, aValue);
+		System.out.println("markCellModified( " +rowIndex +", " + columnIndex);
 		markCellModified(rowIndex, columnIndex);
+		
 	}
 	
 	@Override

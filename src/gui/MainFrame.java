@@ -12,8 +12,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -23,7 +21,6 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.Vector;
 
-import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JMenu;
@@ -35,14 +32,13 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 
 import components.ButtonTabComponent;
 import components.ItemsModel;
 import components.MessageListener;
 import components.StateListener;
 import components.TableEditPanel;
+
 import dao.DAO;
 
 
@@ -192,12 +188,8 @@ public class MainFrame extends JFrame {
 	        	} catch (SQLException e) {
 	        		e.printStackTrace();
 	        	}
-
-
-
 	        } 
-	    }
-		
+	    }		
 	}
 	
 
@@ -305,7 +297,7 @@ public class MainFrame extends JFrame {
               JFrame frame = new MainFrame();
               frame.setTitle("*****");
               frame.setLocationByPlatform(true);
-              frame.setSize(400, 400);
+              frame.setSize(1000, 400);
               frame.setVisible(true);
            }
         });

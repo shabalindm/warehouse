@@ -137,7 +137,10 @@ public abstract class AbstractItemsTableModel<T> extends AbstractTableModel {
 	}
 	
 	public boolean isUpdatedSell(int rowIndex, int columnIndex ){
-		Set<Integer> row = modifiedSells.get(rowIndex);
+		int shift = shiftMap.floorEntry(rowIndex).getValue(); // shift > 0 -  признак того, что строчка находится среди новых строк
+		if (shift > 0)
+			return false;
+		Set<Integer> row = modifiedSells.get(rowIndex + shift);
 		if (row !=null)
 			return row.contains(columnIndex);
 		return false;	
@@ -277,7 +280,7 @@ public abstract class AbstractItemsTableModel<T> extends AbstractTableModel {
 				newRows.put(baseRowNum, list);
 				updateShiftMap();
 				rowCount++;
-				fireTableRowsInserted(rowIndex, rowIndex+1);
+				fireTableRowsInserted(rowIndex+1, rowIndex+1);
 				return;
 				
 			}else{//rowIndex == higher.getKey()-1
@@ -291,7 +294,7 @@ public abstract class AbstractItemsTableModel<T> extends AbstractTableModel {
 		newRows.get(baseRowNum).add(localNum, getEmptyRow());			
 		updateShiftMap();
 		rowCount++;
-		fireTableRowsInserted(rowIndex, rowIndex+1);
+		fireTableRowsInserted(rowIndex+1, rowIndex+1);
 		
 	}
 	
@@ -353,10 +356,11 @@ public abstract class AbstractItemsTableModel<T> extends AbstractTableModel {
 		Set<Integer> set = modifiedSells.get(rowIndex);
 		if (set == null){
 			set = new TreeSet<>();
-			set.add(columnIndex);
 			modifiedSells.put(rowIndex, set);
 		}
-		else set.add(columnIndex);
+		set.add(columnIndex);
+		System.out.println("marked" + rowIndex);
+		System.out.println(modifiedSells);
 			
 		
 		

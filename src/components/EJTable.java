@@ -6,8 +6,12 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.util.List;
 
 import javax.swing.JTable;
+import javax.swing.SortOrder;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 
  /** Ёто таблица, котора€ умеет вставл€ть данные и системного буфера при нажатии ctrl+V и удал€ть из по кнопке delete*/
 public class EJTable extends JTable implements KeyListener {
@@ -15,7 +19,21 @@ public class EJTable extends JTable implements KeyListener {
 	public EJTable(AbstractItemsTableModel<?> model){
 		super(model);
 		setCellSelectionEnabled(true);
-		addKeyListener(this);			
+		addKeyListener(this);	
+		setRowSorter(new TableRowSorter<TableModel>(model){ 
+			@Override
+			public void toggleSortOrder(int column) {
+	        List<? extends SortKey> sortKeys = getSortKeys();
+	        if (sortKeys.size() > 0) {
+	            if (sortKeys.get(0).getSortOrder() == SortOrder.DESCENDING) {
+	                setSortKeys(null);
+	                return;
+	            }
+	        }
+	        super.toggleSortOrder(column);
+	    }
+
+	 });
 	}
 	
 	@Override
@@ -66,4 +84,8 @@ public class EJTable extends JTable implements KeyListener {
 
 	@Override
 	public void keyReleased(KeyEvent e) {}
+	
+	
+	
+   
 }

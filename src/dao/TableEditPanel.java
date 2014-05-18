@@ -181,7 +181,7 @@ public class TableEditPanel extends JPanel {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			MainFrame.commited = false;
+		//	MainFrame.commited = false;
 			try{
 				int[] deleted = tableView.getSelectedRows();
 				tableViewModel.deleteRows(deleted);				
@@ -195,7 +195,7 @@ public class TableEditPanel extends JPanel {
 	class insertBtmListener implements ActionListener{
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			MainFrame.commited = false;
+		//	MainFrame.commited = false;
 			List <String []> insertedRows = new ArrayList<>();
 			for (int i = 0; i < newRowsModel.getRowCount(); i++){
 				for( String s : newRowsModel.getRowAt(i)){ 

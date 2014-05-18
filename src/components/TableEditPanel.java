@@ -1,44 +1,37 @@
 package components;
 
-import gui.MainFrame;
-
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.FlowLayout;
-import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.AdjustmentEvent;
-import java.awt.event.AdjustmentListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
+import java.lang.reflect.GenericSignatureFormatError;
+import java.math.BigDecimal;
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Date;
+import java.util.EventObject;
 
+import javax.swing.AbstractCellEditor;
+import javax.swing.DefaultCellEditor;
 import javax.swing.Icon;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.TableColumnModelEvent;
-import javax.swing.event.TableColumnModelListener;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
-import javax.swing.table.TableModel;
+import javax.swing.JTextField;
+import javax.swing.event.CellEditorListener;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellEditor;
 
 public  class TableEditPanel<T> extends JPanel {
+	
+	DateFormat format = DateFormat.getDateTimeInstance();
 	
 	AbstractItemsTableModel<T> model;
 	JTable table;
@@ -68,8 +61,11 @@ public  class TableEditPanel<T> extends JPanel {
 	 public TableEditPanel(AbstractItemsTableModel<T> model) {
 		this.model = model;
 		table = new EJTable(model);
-		table.setAutoCreateRowSorter(true);
-		table.setCellSelectionEnabled(true);	
+		//table.setAutoCreateRowSorter(true);
+		//table.setCellSelectionEnabled(true);
+		setRenderes();
+		setEditors();
+		
 		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		JScrollPane scrollPane = new JScrollPane(table);
 		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -84,7 +80,9 @@ public  class TableEditPanel<T> extends JPanel {
 	}
 
 	 
-	 /**
+	
+
+	/**
 		 * @param btnPanel 
 		 * 
 		 */
@@ -106,36 +104,35 @@ public  class TableEditPanel<T> extends JPanel {
 		 btnPanel.add(whereBtn);
 	 }
 	 
+	 
 	
 	/** —лушатель кнопки удалени€ строк*/
-	class DeleteBtnListener implements ActionListener{
+	 class DeleteBtnListener implements ActionListener{
 
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			int[] rowsToDelete = table.getSelectedRows();
-			int currentRow = table.getSelectedRow();			
-			int count = table.getSelectedRowCount();
-			for (int i = 0; i <count; i++){	
-				if(model.isNewRow(currentRow)){					
-					model.deleteRow(currentRow);
-					System.out.println( " ”дал€ю " + currentRow + "(нова€ строчка)");
-				}else{
-					model.deleteRow(currentRow);
-					currentRow ++ ;
-					System.out.println( " ”дал€ю " + currentRow + "(стара€ строчка)");
-				}
-					
-			}
-			model.fireTableRowsDeleted(rowsToDelete[0], rowsToDelete[rowsToDelete.length-1]);
-		}}
+		 @Override
+		 public void actionPerformed(ActionEvent e) {
+			 int [] selectedRows = table.getSelectedRows();
+			 int[] rowsToDelete = new int[selectedRows.length];
+			 for(int i = 0 ; i < selectedRows.length; i ++ ){				 
+				 rowsToDelete[i] =table.convertRowIndexToModel(selectedRows[i]);				 
+				 }
+			 
+			 Arrays.sort(rowsToDelete);
+			 for (int i = rowsToDelete.length - 1; i>=0; i--){// удал€ть будем начина€ с последних строчкек - тогда в процессе удалени€ номера меньших не будут мен€тьс€
+				 model.deleteRow(rowsToDelete[i]);	
+			 }			
+			 table.repaint();
+		 }
+	 }
+
 	
 	/** —лушатель кнопки отмены удалени€ строк*/
 	class UnDeleteBtnListener implements ActionListener{
-
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			for (int rowIndex : table.getSelectedRows())			
-				model.unDeleteRow(rowIndex);		
+				model.unDeleteRow(table.convertRowIndexToModel(rowIndex));
+			table.repaint();
 		}}
 	
 	/** —лушатель кнопки записи измененной таблицы в базу */
@@ -157,13 +154,23 @@ public  class TableEditPanel<T> extends JPanel {
 	/** —лушатель кнопки вставки строки*/
 	class InsertBtnListener implements ActionListener{
 		@Override
-		public void actionPerformed(ActionEvent e) {
-			int row = table.getSelectedRow();
-			System.out.println(e.getModifiers());
-			if(e.getModifiers() == 17) //зажата клавиша shift
-				row--;
-			model.addRow(row);
-			table.setRowSelectionInterval(row+1, row+1);
+		public void actionPerformed(ActionEvent e) {			
+			int viewRow = table.getSelectedRow();
+			int modelRow;
+			if(viewRow == -1){//строчка не выбрана
+				modelRow = -1; // вставл€ем перед первой
+			}else if(e.getModifiers() == 17 ){ // - зажата клавиша shift
+				viewRow--;
+				if(viewRow == -1)
+					modelRow = -1;
+				else
+					modelRow = table.convertRowIndexToModel(viewRow);		
+			} else {
+				modelRow = table.convertRowIndexToModel(viewRow);
+			}				
+			model.addRow(modelRow);
+			int newViewRow = table.convertRowIndexToView(modelRow+1);
+			table.setRowSelectionInterval(newViewRow, newViewRow);
 		}
 	}
 	
@@ -228,11 +235,112 @@ public  class TableEditPanel<T> extends JPanel {
 		
 		return btn;
 	}
-		
+	
+	
+	
+	
+	
+	
+	private void setEditors() {
+		table.setDefaultEditor(BigDecimal.class,  new BigDecimalCellEditor(new JTextField()));
+		table.setDefaultEditor(java.util.Date.class,  new DateCellEditor(new JTextField()));
+	}
 
+	public class DateCellEditor extends DefaultCellEditor {
+		public DateCellEditor(final JTextField textField) {
+			super(textField);
+			delegate = new EditorDelegate() {  
+				public void setValue(Object value) {  
+					if (value instanceof Date)
+						value = format.format(value);					
+					textField.setText((value != null) ? value.toString() : "");  
+				}  
+				public Object getCellEditorValue() {
+					Object result = textField.getText();
+					try {result = format.parse((String) result);}
+					catch (Exception e){}
+					return result;  
+				}  
+			};  
+			textField.addActionListener(delegate);
+		}		
+
+	}
+	public class BigDecimalCellEditor extends DefaultCellEditor {
+		public BigDecimalCellEditor(final JTextField textField) {
+			super(textField);
+			delegate = new EditorDelegate() {  
+				public void setValue(Object value) {  				
+					textField.setText((value != null) ? value.toString() : "");  
+				}  
+				public Object getCellEditorValue() {
+					Object result = textField.getText();
+					try {result = new BigDecimal((String) result);}
+					catch (Exception e){}
+					return result;  
+				}  
+			};  
+			textField.addActionListener(delegate);
+		}		
+
+	}
 	
-	
-	
+	private void setRenderes() {
+		table.setDefaultRenderer(Object.class, new CellRenderer());
+		table.setDefaultRenderer(BigDecimal.class, new CellRenderer());
+		table.setDefaultRenderer(java.util.Date.class, new CellRenderer());
+	}
+
+
+	public class CellRenderer extends DefaultTableCellRenderer {
+
+		@Override
+		public Component getTableCellRendererComponent(JTable table,
+				Object value, boolean isSelected, boolean hasFocus, int row,
+				int column) {
+			setBackground(null);
+			setForeground(null);
+			int modelcolumn = table.convertColumnIndexToModel(column);
+			int modelrow = table.convertRowIndexToModel(row);	
+			boolean rightType = true;
+			if (value != null){
+				rightType = value.getClass().isAssignableFrom(model.getColumnClass(modelcolumn));
+				if (value instanceof java.util.Date ){
+					value = format.format(value);
+				}
+			}
+
+			super.getTableCellRendererComponent( table,	 value,  isSelected,  hasFocus,  row,	 column);		
+
+			if (model.isDeletedRow(modelrow)){				
+				if(!isSelected)			setBackground(new Color(255, 150, 150));
+				else 					setBackground(new Color(150, 80, 80));
+			} 
+
+			else if(model.isNewRow(modelrow)){				
+					if(!isSelected)			setBackground(new Color(160, 255, 160)); 
+					else 					setBackground(new Color(0, 140, 30));
+			}	
+
+			else if (model.isUpdatedSell(modelrow, modelcolumn)){//ќбычна€ строчка с обновленным значением				
+					if(!isSelected)			setBackground(new Color(16, 255, 160)); 
+					else 					setBackground(new Color(0, 140, 30));
+			}
+					
+			if (!rightType){
+				setForeground(Color.RED);
+				
+			}
+			return this;
+		}//getTableCellRendererComponent
+	}//CellRenderer
+
+
+
+
+
+
+
 	
 	
 	
