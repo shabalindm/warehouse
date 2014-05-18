@@ -68,10 +68,10 @@ public class ItemsModel extends AbstractItemsTableModel<Item>{
 	
 	@Override
 	public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-		Item item = getRow(rowIndex);				
+		Item item = getRow(rowIndex);		
+		if (!getValueAt(rowIndex, columnIndex).equals(aValue))
+			markCellModified(rowIndex, columnIndex);
 		item.setVal(columnIndex, aValue);
-		System.out.println("markCellModified( " +rowIndex +", " + columnIndex);
-		markCellModified(rowIndex, columnIndex);
 		
 	}
 	

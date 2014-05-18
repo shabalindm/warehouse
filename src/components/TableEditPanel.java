@@ -31,7 +31,7 @@ import javax.swing.table.TableCellEditor;
 
 public  class TableEditPanel<T> extends JPanel {
 	
-	DateFormat format = DateFormat.getDateTimeInstance();
+	
 	
 	AbstractItemsTableModel<T> model;
 	JTable table;
@@ -63,8 +63,7 @@ public  class TableEditPanel<T> extends JPanel {
 		table = new EJTable(model);
 		//table.setAutoCreateRowSorter(true);
 		//table.setCellSelectionEnabled(true);
-		setRenderes();
-		setEditors();
+		
 		
 		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		JScrollPane scrollPane = new JScrollPane(table);
@@ -241,101 +240,7 @@ public  class TableEditPanel<T> extends JPanel {
 	
 	
 	
-	private void setEditors() {
-		table.setDefaultEditor(BigDecimal.class,  new BigDecimalCellEditor(new JTextField()));
-		table.setDefaultEditor(java.util.Date.class,  new DateCellEditor(new JTextField()));
-	}
-
-	public class DateCellEditor extends DefaultCellEditor {
-		public DateCellEditor(final JTextField textField) {
-			super(textField);
-			delegate = new EditorDelegate() {  
-				public void setValue(Object value) {  
-					if (value instanceof Date)
-						value = format.format(value);					
-					textField.setText((value != null) ? value.toString() : "");  
-				}  
-				public Object getCellEditorValue() {
-					Object result = textField.getText();
-					try {result = format.parse((String) result);}
-					catch (Exception e){}
-					return result;  
-				}  
-			};  
-			textField.addActionListener(delegate);
-		}		
-
-	}
-	public class BigDecimalCellEditor extends DefaultCellEditor {
-		public BigDecimalCellEditor(final JTextField textField) {
-			super(textField);
-			delegate = new EditorDelegate() {  
-				public void setValue(Object value) {  				
-					textField.setText((value != null) ? value.toString() : "");  
-				}  
-				public Object getCellEditorValue() {
-					Object result = textField.getText();
-					try {result = new BigDecimal((String) result);}
-					catch (Exception e){}
-					return result;  
-				}  
-			};  
-			textField.addActionListener(delegate);
-		}		
-
-	}
 	
-	private void setRenderes() {
-		table.setDefaultRenderer(Object.class, new CellRenderer());
-		table.setDefaultRenderer(BigDecimal.class, new CellRenderer());
-		table.setDefaultRenderer(java.util.Date.class, new CellRenderer());
-	}
-
-
-	public class CellRenderer extends DefaultTableCellRenderer {
-
-		@Override
-		public Component getTableCellRendererComponent(JTable table,
-				Object value, boolean isSelected, boolean hasFocus, int row,
-				int column) {
-			setBackground(null);
-			setForeground(null);
-			int modelcolumn = table.convertColumnIndexToModel(column);
-			int modelrow = table.convertRowIndexToModel(row);	
-			boolean rightType = true;
-			if (value != null){
-				rightType = value.getClass().isAssignableFrom(model.getColumnClass(modelcolumn));
-				if (value instanceof java.util.Date ){
-					value = format.format(value);
-				}
-			}
-
-			super.getTableCellRendererComponent( table,	 value,  isSelected,  hasFocus,  row,	 column);		
-
-			if (model.isDeletedRow(modelrow)){				
-				if(!isSelected)			setBackground(new Color(255, 150, 150));
-				else 					setBackground(new Color(150, 80, 80));
-			} 
-
-			else if(model.isNewRow(modelrow)){				
-					if(!isSelected)			setBackground(new Color(160, 255, 160)); 
-					else 					setBackground(new Color(0, 140, 30));
-			}	
-
-			else if (model.isUpdatedSell(modelrow, modelcolumn)){//Обычная строчка с обновленным значением				
-					if(!isSelected)			setBackground(new Color(16, 255, 160)); 
-					else 					setBackground(new Color(0, 140, 30));
-			}
-					
-			if (!rightType){
-				setForeground(Color.RED);
-				
-			}
-			return this;
-		}//getTableCellRendererComponent
-	}//CellRenderer
-
-
 
 
 

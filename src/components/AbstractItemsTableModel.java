@@ -358,12 +358,7 @@ public abstract class AbstractItemsTableModel<T> extends AbstractTableModel {
 			set = new TreeSet<>();
 			modifiedSells.put(rowIndex, set);
 		}
-		set.add(columnIndex);
-		System.out.println("marked" + rowIndex);
-		System.out.println(modifiedSells);
-			
-		
-		
+		set.add(columnIndex);	
 	}
 	
 	@Override
@@ -403,6 +398,7 @@ public abstract class AbstractItemsTableModel<T> extends AbstractTableModel {
 			for (int i: deletedRows){
 				rowIndex = i;
 				deleteFromDB(cache.get(rowIndex));
+				modifiedSells.remove(rowIndex);
 			}
 			
 			rowIndex = -1;
