@@ -17,7 +17,7 @@ public class Panel2 extends TableEditPanel<Item[]> {
 			for (int veiwRow : table.getSelectedRows()){
 				((Model2)model).find(table.convertRowIndexToModel(veiwRow));
 			}
-
+			model.announce("OK");
 		}
 	}
 

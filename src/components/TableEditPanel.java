@@ -123,14 +123,7 @@ public  class TableEditPanel<T> extends JPanel {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			int errorRow = model.writeToDB();
-			if (errorRow != -1){
-				errorRow = table.convertRowIndexToView(errorRow);
-				table.setRowSelectionInterval(errorRow, errorRow);
-				table.setColumnSelectionInterval(0, model.getColumnCount()-1);				
-			} else {
-				setState(!COMMITED);
-		}
+			writeData();
 
 		}
 
@@ -225,6 +218,20 @@ public  class TableEditPanel<T> extends JPanel {
 	
 	public void close(){
 		model.close();
+	}
+
+	/**
+	 * 
+	 */
+	public void writeData() {
+		int errorRow = model.writeToDB();
+		if (errorRow != -1){
+			errorRow = table.convertRowIndexToView(errorRow);
+			table.setRowSelectionInterval(errorRow, errorRow);
+			table.setColumnSelectionInterval(0, model.getColumnCount()-1);				
+		} else {
+			setState(!COMMITED);
+}
 	}
 
 }

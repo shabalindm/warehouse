@@ -34,6 +34,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 
+import components.AbstractItemsTableModel;
 import components.ButtonTabComponent;
 import components.ItemsModel;
 import components.MessageListener;
@@ -187,9 +188,9 @@ public class MainFrame extends JFrame {
 	        		
 	        		// создаем саму панельку
 	        		TableEditPanel  tEpanel = new TableEditPanel(model);
-	        		
+	        		tEpanel.setStateListener(stateListener);
 	        		//размещаем ее в новой вкладке
-	        		putInTab(tableName, tEpanel);
+	        		putInTab(tableName, tEpanel, model);
  		
 	        	} catch (SQLException e) {
 	        		e.printStackTrace();
@@ -202,8 +203,9 @@ public class MainFrame extends JFrame {
 	/**Размещает созданную панель в новой закрывающейся вкладке
 	 * @param tableName
 	 * @param tEpanel
+	 * @param model 
 	 */
-	private void putInTab(String tabName, final TableEditPanel tEpanel) {
+	private void putInTab(String tabName, final TableEditPanel tEpanel, final AbstractItemsTableModel<?>  model) {
 		int i = tabbedPane.getTabCount();
 		Component c = tabbedPane.add(tabName, tEpanel);
 		c.setName(tabName);
@@ -213,11 +215,31 @@ public class MainFrame extends JFrame {
 		tabbedPane.setTabComponentAt(i, new ButtonTabComponent(tabbedPane){
 			@Override
 			public void removeTab(int i) {
+				
+				if (!model.isSaved()){
+					int result = JOptionPane.showConfirmDialog(tabbedPane, "Сохранить измененные данные?",
+							"", JOptionPane.YES_NO_CANCEL_OPTION);
+					if (result == 0){ //сохранить
+						if (model.writeToDB() != -1) // не сохранилось
+							return;
+						else{
+							tEpanel.writeData();
+						}
+					}
+					else if (result == 2){
+						return;
+					}
+				}
+				
 				tEpanel.close();
 				super.removeTab(i);
 				}
 		});
 	}
+	
+	
+	
+	
 	/** Слушатель, проверяющий, зафиксированы ли изменения в базе и выводящий диалог с предложеним зафиксировать*/
 	class CloseOperationListener extends WindowAdapter{
 		public void windowClosing(WindowEvent e){
@@ -278,7 +300,8 @@ public class MainFrame extends JFrame {
         			Model1 model = new Model1(conn);        		
         			Panel1 panel = new Panel1(model);
         			model.setMessageListener(msgListener);
-        			putInTab("Cпецификации с комплектующими", panel);        			
+        			panel.setStateListener(stateListener);
+        			putInTab("Cпецификации с комплектующими", panel, model);        			
         	}           
         });
         JMenuItem insertItem2 = new JMenuItem("Ввод требований");        
@@ -288,7 +311,8 @@ public class MainFrame extends JFrame {
         			Model2 model = new Model2(conn);        		
         			Panel2 panel = new Panel2(model);
         			model.setMessageListener(msgListener);
-        			putInTab("Ввод требований", panel);        			
+        			panel.setStateListener(stateListener);
+        			putInTab("Ввод требований", panel, model);        			
         	}           
         });
         

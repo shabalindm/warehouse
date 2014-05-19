@@ -26,7 +26,7 @@ public class Model2 extends MultyItemsModel {
 			
 			columnsMap = new int[][]{
 					
-					{0,  0},
+				//	{0,  0},
 					{0,  1},
 					{0,  3}, // Ном_Заявки
 					{0,  4},
