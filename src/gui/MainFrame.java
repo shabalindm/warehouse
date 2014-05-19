@@ -1,6 +1,7 @@
 package gui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
@@ -36,9 +37,12 @@ import javax.swing.KeyStroke;
 import components.ButtonTabComponent;
 import components.ItemsModel;
 import components.MessageListener;
+import components.Model1;
+import components.Model2;
+import components.Panel1;
+import components.Panel2;
 import components.StateListener;
 import components.TableEditPanel;
-
 import dao.DAO;
 
 
@@ -144,6 +148,8 @@ public class MainFrame extends JFrame {
 		info = new JTextArea(10, 14);
 		JScrollPane infopane =  new JScrollPane(info);
 		info.setLineWrap(true);
+		info.setForeground(Color.RED);
+		info.setWrapStyleWord(true);
 		
 		westpanel.add(navi, BorderLayout.CENTER);
 		westpanel.add(infopane, BorderLayout.SOUTH);
@@ -263,27 +269,32 @@ public class MainFrame extends JFrame {
         menuBar.add(connectMenu);
         
  /*------------------------------------------------------------------------*/
-        JMenuItem insertItem1 = new JMenuItem("¬вод спецификаций");
+        JMenu insertMenu = new JMenu("Cводные таблицы");
         
-        JMenu insertMenu = new JMenu("‘ормы ввода");
-        insertMenu.add(insertItem1);
+        JMenuItem insertItem1 = new JMenuItem("¬вод спецификаций");        
+        
         insertItem1.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent e) {        		     			
-//        			TableEditPanel tEPanel = new Panel1(conn);
-//        			tEPanel.tableViewModel.setMessageListener(msgListener);
-//        			putInTab("¬вод спецификаций", tEPanel); 
-//        			tEPanel.tableViewModel.addTableModelListener( new TableModelListener(){
-//    	    			@Override
-//    	    			public void tableChanged(TableModelEvent e) {
-//    	    				commited = false;
-//    	    			}});
-//        			
-        			
+        	public void actionPerformed(ActionEvent e) { 
+        			Model1 model = new Model1(conn);        		
+        			Panel1 panel = new Panel1(model);
+        			model.setMessageListener(msgListener);
+        			putInTab("Cпецификации с комплектующими", panel);        			
         	}           
         });
-        menuBar.add(insertMenu);
-
+        JMenuItem insertItem2 = new JMenuItem("¬вод требований");        
         
+        insertItem2.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) { 
+        			Model2 model = new Model2(conn);        		
+        			Panel2 panel = new Panel2(model);
+        			model.setMessageListener(msgListener);
+        			putInTab("¬вод требований", panel);        			
+        	}           
+        });
+        
+        insertMenu.add(insertItem2);        
+        insertMenu.add(insertItem1);
+        menuBar.add(insertMenu);        
         setJMenuBar(menuBar);
         
     }

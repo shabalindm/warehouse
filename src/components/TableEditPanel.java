@@ -1,33 +1,19 @@
 package components;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.lang.reflect.GenericSignatureFormatError;
-import java.math.BigDecimal;
-import java.text.DateFormat;
 import java.util.Arrays;
-import java.util.Date;
-import java.util.EventObject;
 
-import javax.swing.AbstractCellEditor;
-import javax.swing.DefaultCellEditor;
 import javax.swing.Icon;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.event.CellEditorListener;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableCellEditor;
 
 public  class TableEditPanel<T> extends JPanel {
 	
@@ -61,9 +47,7 @@ public  class TableEditPanel<T> extends JPanel {
 	 public TableEditPanel(AbstractItemsTableModel<T> model) {
 		this.model = model;
 		table = new EJTable(model);
-		//table.setAutoCreateRowSorter(true);
-		//table.setCellSelectionEnabled(true);
-		
+		model.updateData();
 		
 		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		JScrollPane scrollPane = new JScrollPane(table);
@@ -141,7 +125,9 @@ public  class TableEditPanel<T> extends JPanel {
 		public void actionPerformed(ActionEvent e) {
 			int errorRow = model.writeToDB();
 			if (errorRow != -1){
+				errorRow = table.convertRowIndexToView(errorRow);
 				table.setRowSelectionInterval(errorRow, errorRow);
+				table.setColumnSelectionInterval(0, model.getColumnCount()-1);				
 			} else {
 				setState(!COMMITED);
 		}
@@ -227,27 +213,13 @@ public  class TableEditPanel<T> extends JPanel {
 	}
 
 	/** Создает новую кнопку*/
-	private JButton makeButton(String name, Icon icon,
+	protected JButton makeButton(String name, Icon icon,
 			ActionListener actionListener) {
 		JButton btn = new JButton(name, icon);
 		btn.addActionListener(actionListener);
 		
 		return btn;
 	}
-	
-	
-	
-	
-	
-	
-	
-
-
-
-
-
-	
-	
 	
 	
 	

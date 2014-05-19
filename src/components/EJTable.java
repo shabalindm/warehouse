@@ -9,6 +9,7 @@ import java.awt.datatransfer.Transferable;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.List;
@@ -66,7 +67,7 @@ public class EJTable extends JTable implements KeyListener {
 		else if (e.getKeyCode () == KeyEvent.VK_DELETE){
 			for(int row : getSelectedRows ())
 				for ( int column: getSelectedColumns())
-					getModel().setValueAt(null, row, column);
+					getModel().setValueAt(null, convertRowIndexToModel(row), convertColumnIndexToModel(column));
 			repaint();
 		}
 	}
@@ -93,7 +94,7 @@ public class EJTable extends JTable implements KeyListener {
 						int modelCol = convertColumnIndexToModel(startCol +i);	
 						Object value = words[i].trim();
 						if (Date.class.isAssignableFrom(getModel().getColumnClass(modelCol))){
-							try{value = format.parse((String) value);}
+							try{value = new Timestamp((format.parse((String) value)).getTime());}
 							catch(Exception e) {}							
 						} else if (BigDecimal.class.isAssignableFrom(getModel().getColumnClass(modelCol))) {
 							try {value = new BigDecimal((String) value);}
@@ -128,7 +129,7 @@ public class EJTable extends JTable implements KeyListener {
 				}  
 				public Object getCellEditorValue() {
 					Object result = textField.getText().trim();
-					try {result = format.parse((String) result);}
+					try {result =  new Timestamp((format.parse((String) result)).getTime());}
 					catch (Exception e){}
 					return result;  
 				}  

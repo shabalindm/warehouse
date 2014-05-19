@@ -16,7 +16,7 @@ public class ItemsModel extends AbstractItemsTableModel<Item>{
 	public ItemsModel(DAO dao)  {
 		this.dao = dao;
 		conn  = dao.getConnection();
-		updateData();
+		
 	}
 
 
@@ -29,8 +29,7 @@ public class ItemsModel extends AbstractItemsTableModel<Item>{
 		String sql = "select ";
 		for (String column : dao.getColumnNames())
 			sql += column + ", ";
-		sql += "ROWID" + " from " + dao.getTableName() + " " + whereCond;
-		System.out.println(sql);
+		sql += "ROWID" + " from " + dao.getTableName() ;
 		return( sql);		 
 	}
 
@@ -69,8 +68,15 @@ public class ItemsModel extends AbstractItemsTableModel<Item>{
 	@Override
 	public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
 		Item item = getRow(rowIndex);		
-		if (!getValueAt(rowIndex, columnIndex).equals(aValue))
-			markCellModified(rowIndex, columnIndex);
+		if(aValue instanceof String && ((String)aValue).matches("\\s*"))
+			aValue = null;
+		
+		Object oldValue = getValueAt(rowIndex, columnIndex);			
+		if(aValue == null && aValue == oldValue ||  aValue != null && aValue.equals(oldValue) ){
+		// считаем что значение на самом деле не изменилось 
+		} else
+				markCellModified(rowIndex, columnIndex); 
+		
 		item.setVal(columnIndex, aValue);
 		
 	}
@@ -110,7 +116,7 @@ public class ItemsModel extends AbstractItemsTableModel<Item>{
 
 	@Override
 	void updateInDB(Item item) throws SQLException {
-		dao.storeNew2(item);
+		dao.storebyRowId(item);
 		
 	}
 

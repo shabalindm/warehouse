@@ -77,7 +77,8 @@ public abstract class AbstractItemsTableModel<T> extends AbstractTableModel {
 	 *  число строк в нем и обновляет значение поля rowCount*/
 	public void updateData() {
 			Statement stmt = null;
-			String sql = getSQL(); 
+			String sql = getSQL()+ " " + whereCond; 
+			System.out.println(sql);
 			try{
 				stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 				ResultSet newrs = stmt.executeQuery(sql);
@@ -89,15 +90,15 @@ public abstract class AbstractItemsTableModel<T> extends AbstractTableModel {
 					rowCount = 0;
 				else
 					rowCount =  rs.getRow();
-				rs.beforeFirst();	
-				System.out.println(rowCount);
-				
+				rs.beforeFirst();				
 				// очищаем данные модели
 				cache.clear();
 				newRows.clear();
 				deletedRows.clear();
 				shiftMap.clear();
-				shiftMap.put(-1, 0);				
+				modifiedSells.clear();
+				shiftMap.put(-1, 0);
+				announce("Обновлено");
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				announce(e.getMessage());
@@ -108,7 +109,7 @@ public abstract class AbstractItemsTableModel<T> extends AbstractTableModel {
 	}
 	
 /**Считывает из результирующего набора порцию результатов*/
-	abstract T getRowFromResultSet(int rsRowNumber); 
+	abstract T getRowFromResultSet(int rowNumber); 
 	
 /** Получает строчку из кеша по индексу кеша, или, если ее там нет, подгружает в кэш и выдает */
 	private T getRowFromCache(int rowIndex){
