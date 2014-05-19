@@ -386,8 +386,9 @@ public abstract class AbstractItemsTableModel<T> extends AbstractTableModel {
 	abstract void insertIntoDB(T modelRow) throws SQLException ;
 	abstract void updateInDB(T modelRow) throws SQLException ;
 	
-	/**записывает результаты в  базу. Возвращает номер строчки, на которой произошла ошибка. Если ошибок не было, возвращает -1*/
-	public int writeToDB(){
+	/**записывает результаты в  базу. Возвращает номер строчки, на которой произошла ошибка. Если ошибок не было, возвращает -1
+	 * @throws WriteDataToDBException */
+	public void writeToDB() throws WriteDataToDBException   {
 		int rowIndex = -1;
 		int localIndex = -1;
 		
@@ -432,9 +433,8 @@ public abstract class AbstractItemsTableModel<T> extends AbstractTableModel {
 			} catch (SQLException e1) {
 				e1.printStackTrace();
 			}
-			
+			throw new WriteDataToDBException(getModelIndex(rowIndex) + localIndex +1);
 		}
-		return getModelIndex(rowIndex) + localIndex +1;
 		
 	} 
 	

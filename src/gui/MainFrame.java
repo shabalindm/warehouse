@@ -44,6 +44,8 @@ import components.Panel1;
 import components.Panel2;
 import components.StateListener;
 import components.TableEditPanel;
+import components.UserCancelledOperationException;
+import components.WriteDataToDBException;
 import dao.DAO;
 
 
@@ -214,24 +216,12 @@ public class MainFrame extends JFrame {
 		// Добавляем ко вкладке крестик, переопределяем операцию закрытия
 		tabbedPane.setTabComponentAt(i, new ButtonTabComponent(tabbedPane){
 			@Override
-			public void removeTab(int i) {
-				
-				if (!model.isSaved()){
-					int result = JOptionPane.showConfirmDialog(tabbedPane, "Сохранить измененные данные?",
-							"", JOptionPane.YES_NO_CANCEL_OPTION);
-					if (result == 0){ //сохранить
-						if (model.writeToDB() != -1) // не сохранилось
-							return;
-						else{
-							tEpanel.writeData();
-						}
-					}
-					else if (result == 2){
-						return;
-					}
+			public void removeTab(int i) {				
+				try {
+					tEpanel.close()	;
+				} catch (WriteDataToDBException | UserCancelledOperationException e) {
+					return;
 				}
-				
-				tEpanel.close();
 				super.removeTab(i);
 				}
 		});
@@ -243,9 +233,12 @@ public class MainFrame extends JFrame {
 	/** Слушатель, проверяющий, зафиксированы ли изменения в базе и выводящий диалог с предложеним зафиксировать*/
 	class CloseOperationListener extends WindowAdapter{
 		public void windowClosing(WindowEvent e){
+			for(int i = 0; i < tabbedPane.getTabCount(); i++)
+				((ButtonTabComponent)tabbedPane.getTabComponentAt(i)).removeTab(i);
+			
 			if (!commited){ 
-				int result = JOptionPane.showConfirmDialog((Component) null, "Сохранить измененные данные?",
-						"alert", JOptionPane.YES_NO_CANCEL_OPTION);
+				int result = JOptionPane.showConfirmDialog((Component) null, "Зафиксировать все изменения?",
+						"", JOptionPane.YES_NO_CANCEL_OPTION);
 				if (result == 0){
 					try {	conn.commit();	conn.close();}
 					catch (SQLException e1) {e1.printStackTrace();}

@@ -10,6 +10,7 @@ import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -123,7 +124,10 @@ public  class TableEditPanel<T> extends JPanel {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			writeData();
+			try {
+				writeData();
+			} catch (WriteDataToDBException e1) {
+			}
 
 		}
 
@@ -216,22 +220,38 @@ public  class TableEditPanel<T> extends JPanel {
 	
 	
 	
-	public void close(){
+	public void close() throws WriteDataToDBException, UserCancelledOperationException{
+
+		if (!model.isSaved()){
+			int result = JOptionPane.showConfirmDialog(this, "Сохранить измененные данные?",
+					"", JOptionPane.YES_NO_CANCEL_OPTION);
+			if (result == 0){ //сохранить
+				writeData();					
+			}	
+			else if (result == 2)
+				throw new UserCancelledOperationException();
+			
+		} 
 		model.close();
 	}
 
 	/**
+	 * @throws WriteDataToDBException 
 	 * 
 	 */
-	public void writeData() {
-		int errorRow = model.writeToDB();
-		if (errorRow != -1){
+	private void  writeData() throws WriteDataToDBException {
+		try {
+			model.writeToDB();
+			setState(!COMMITED);
+		} catch (WriteDataToDBException e) {
+			int errorRow = e.rowIndex;
 			errorRow = table.convertRowIndexToView(errorRow);
 			table.setRowSelectionInterval(errorRow, errorRow);
-			table.setColumnSelectionInterval(0, model.getColumnCount()-1);				
-		} else {
-			setState(!COMMITED);
-}
+			table.setColumnSelectionInterval(0, model.getColumnCount()-1);
+			throw e;
+		}
+		
+
 	}
 
 }
