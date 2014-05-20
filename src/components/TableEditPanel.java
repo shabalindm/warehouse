@@ -20,9 +20,9 @@ public  class TableEditPanel<T> extends JPanel {
 	
 	
 	
-	AbstractItemsTableModel<T> model;
-	JTable table;
-	JPanel btnPanel;
+	public AbstractItemsTableModel<T> model;
+	protected JTable table;
+	JPanel controlPanel;
 
 	JButton insertBtn; 
 	JButton deleteBtn;
@@ -55,8 +55,9 @@ public  class TableEditPanel<T> extends JPanel {
 		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		
+		createBottons();
 		JPanel btnPanel = new JPanel();
-		initBtnPanel(btnPanel);			
+		setupControlPanel(btnPanel);			
 		
 		setLayout(new BorderLayout());
 		add(btnPanel, BorderLayout.NORTH);
@@ -67,25 +68,28 @@ public  class TableEditPanel<T> extends JPanel {
 	
 
 	/**
-		 * @param btnPanel 
+		 * @param controlPanel 
+	 * @return 
 		 * 
 		 */
-	 protected void initBtnPanel(JPanel btnPanel) {
+	 protected void createBottons(){
 		 insertBtn  = makeButton("Вставить", null, new InsertBtnListener());
 		 insertBtn.setToolTipText("Нажми Shift, чтобы вставить новую строку ПЕРЕД выделенной строкой");
 		 deleteBtn = makeButton("Удалить", null, new DeleteBtnListener());
 		 unDeleteBtn = makeButton("Вернуть", null, new UnDeleteBtnListener()) ;
 		 writeBtn = makeButton("Записать", null, new WriteBtnListener()) ;
 		 clearBtn = makeButton("Обновить", null, new ClearBtnListener()) ;
-		 whereBtn = makeButton("Условия", null, new WhereBtnListener());
-		 btnPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-
-		 btnPanel.add(insertBtn); 
-		 btnPanel.add(deleteBtn);
-		 btnPanel.add(unDeleteBtn);
-		 btnPanel.add(writeBtn);
-		 btnPanel.add(clearBtn);
-		 btnPanel.add(whereBtn);
+		 whereBtn = makeButton("Условия", null, new WhereBtnListener());}
+		
+	 
+	 protected void setupControlPanel(JPanel controlPanel) {
+		 controlPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+		 controlPanel.add(insertBtn); 
+		 controlPanel.add(deleteBtn);
+		 controlPanel.add(unDeleteBtn);
+		 controlPanel.add(writeBtn);
+		 controlPanel.add(clearBtn);
+		 controlPanel.add(whereBtn);
 	 }
 	 
 	 
@@ -201,7 +205,7 @@ public  class TableEditPanel<T> extends JPanel {
 			 		+ "WHERE [имя столбца]  &lt 10 <br> ORDER BY [имя столбца] </html>";
 			 dialog.add(new JLabel(example), BorderLayout.NORTH);
 			 
-			 dialog.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			 dialog.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 			 dialog.pack();
 			 dialog.setAlwaysOnTop(true);
 			 dialog.setVisible(true);
@@ -239,7 +243,7 @@ public  class TableEditPanel<T> extends JPanel {
 	 * @throws WriteDataToDBException 
 	 * 
 	 */
-	private void  writeData() throws WriteDataToDBException {
+	protected void  writeData() throws WriteDataToDBException {
 		try {
 			model.writeToDB();
 			setState(!COMMITED);

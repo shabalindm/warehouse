@@ -264,8 +264,19 @@ public class MainFrame extends JFrame {
 	private void initMenu() {
         JMenuBar menuBar = new JMenuBar();
         //create Options menu
-       JMenuItem saveItem = new JMenuItem("Сохранить изменения");
-       saveItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK));
+       JMenuItem commit = new JMenuItem("Сохранить изменения");
+       commit.addActionListener(new ActionListener() {
+       	public void actionPerformed(ActionEvent e) {
+       		try {
+					conn.commit();
+					commited = true;
+					//refreshTabs();
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+       	}
+       });
+      
        JMenuItem rollback = new JMenuItem("Откатить");
         rollback.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
@@ -279,7 +290,7 @@ public class MainFrame extends JFrame {
         	}
         });
         JMenu connectMenu = new JMenu("Соединение");
-        connectMenu.add(saveItem);
+        connectMenu.add(commit);
         connectMenu.add(rollback);
         menuBar.add(connectMenu);
         

@@ -9,9 +9,8 @@ import dao.Item;
  * ¬ основе модели лежит DAO - он определ€ет все параметры*/
 public class ItemsModel extends AbstractItemsTableModel<Item>{
 
-	private DAO dao;
+	protected DAO dao;
 		
-	
 	
 	public ItemsModel(DAO dao)  {
 		this.dao = dao;
@@ -97,7 +96,7 @@ public class ItemsModel extends AbstractItemsTableModel<Item>{
 
 
 	@Override
-	Item getEmptyRow() {
+	protected 	Item getEmptyRow() {
 		// TODO Auto-generated method stub
 		return dao.getEmptyItem();
 	}

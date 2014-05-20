@@ -111,7 +111,7 @@ public class Model2 extends MultyItemsModel {
 			return;
 		
 		String sqlCheck = "SELECT Count(*) FROM ÇÀßÂÊÈ WHERE ÍÎÌ_ÇÀßÂÊÈ = '" + items[0].getVal(3) +"'";
-		String sqlFind = "INSERT INTO ÇÀßÂÊÈ ( ÍÎÌ_ÇÀßÂÊÈ ) VALUES ( "+ items[0].getVal(3) + ")";
+		String sqlFind = "INSERT INTO ÇÀßÂÊÈ ( ÍÎÌ_ÇÀßÂÊÈ ) VALUES ( '"+ items[0].getVal(3) + "')";
 		
 		System.out.println(sqlFind);
 		try{

@@ -77,7 +77,7 @@ public abstract class MultyItemsModel extends AbstractItemsTableModel<Item[]>{
 		
 	}
 	@Override
-	Item[] getEmptyRow() {
+	protected  Item[] getEmptyRow() {
 		Item[] row = new Item[daos.length];
 		for (int i = 0; i <row.length ; i++ ){
 			row[i] = daos[i].getEmptyItem();

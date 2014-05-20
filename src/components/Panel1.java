@@ -26,8 +26,8 @@ public class Panel1 extends TableEditPanel<Item[]> {
 	}
 
 	@Override
-	protected void initBtnPanel(JPanel btnPanel) {
-		super.initBtnPanel(btnPanel);
+	protected void setupControlPanel(JPanel btnPanel) {
+		super.setupControlPanel(btnPanel);
 		JButton searchBtn = makeButton("Найти", null, new SearchBtnListener());
 		searchBtn.setToolTipText("Выдели строчки, для которых нужно произвести поиск");
 		btnPanel.add(searchBtn);

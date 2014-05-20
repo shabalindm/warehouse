@@ -26,8 +26,8 @@ public class Panel2 extends TableEditPanel<Item[]> {
 	}
 
 	@Override
-	protected void initBtnPanel(JPanel btnPanel) {
-		super.initBtnPanel(btnPanel);
+	protected void setupControlPanel(JPanel btnPanel) {
+		super.setupControlPanel(btnPanel);
 		JButton btntn = makeButton("Проверить заявки", null, new btnListener());
 		btntn.setToolTipText("Ищет среди имеющихся или создает новую заявку. Выдели нужные строчки");
 		btnPanel.add(btntn);

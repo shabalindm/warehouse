@@ -123,7 +123,7 @@ public abstract class AbstractItemsTableModel<T> extends AbstractTableModel {
 	}
 	
 /**Находит строчку (среди старых и новых) по индексу модели*/ 
-	protected T getRow(int rowIndex){
+	public T getRow(int rowIndex){
 		Entry<Integer, Integer> floor = shiftMap.floorEntry(rowIndex);		
 		if (floor.getValue() <= 0) // отрицательноe число - признак того, строчку нужно искать среди старых
 			return getRowFromCache(rowIndex + floor.getValue());
@@ -178,6 +178,7 @@ public abstract class AbstractItemsTableModel<T> extends AbstractTableModel {
 			}
 
 			@Override
+			protected
 			String getEmptyRow() {
 				// TODO Auto-generated method stub
 				return "New";
@@ -380,7 +381,7 @@ public abstract class AbstractItemsTableModel<T> extends AbstractTableModel {
 		return rowCount;
 	}
 
-	abstract T getEmptyRow() ;
+	protected abstract T getEmptyRow() ;
 
 	abstract void deleteFromDB(T modelRow) throws SQLException ;
 	abstract void insertIntoDB(T modelRow) throws SQLException ;
