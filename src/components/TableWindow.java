@@ -1,4 +1,4 @@
-package components.detaled;
+package components;
 
 import java.awt.BorderLayout;
 import java.awt.event.WindowAdapter;
@@ -6,10 +6,6 @@ import java.awt.event.WindowEvent;
 import java.io.ObjectOutputStream.PutField;
 
 import javax.swing.JFrame;
-
-import components.TableEditPanel;
-import components.UserCancelledOperationException;
-import components.WriteDataToDBException;
 
 public class TableWindow extends JFrame {
 	private TableEditPanel<?> tEPanel;

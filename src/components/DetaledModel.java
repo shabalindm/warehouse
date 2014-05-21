@@ -1,6 +1,6 @@
-package components.detaled;
+package components;
 
-import components.ItemsModel;
+import java.sql.SQLException;
 
 import dao.DAO;
 import dao.Item;

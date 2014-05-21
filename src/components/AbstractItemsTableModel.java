@@ -45,6 +45,10 @@ public abstract class AbstractItemsTableModel<T> extends AbstractTableModel {
 		this.listener = listener;
 	}
 	
+	public MessageListener getMessageListener(){
+		 return listener;
+	}
+	
 /**   ѕередает слушателю  (если он установлен) сообщение*/
 	protected void announce(String msg){
 		if (listener != null)

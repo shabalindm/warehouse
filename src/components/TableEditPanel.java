@@ -56,11 +56,11 @@ public  class TableEditPanel<T> extends JPanel {
 		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		
 		createBottons();
-		JPanel btnPanel = new JPanel();
-		setupControlPanel(btnPanel);			
+		controlPanel = new JPanel();
+		setupControlPanel(controlPanel);			
 		
 		setLayout(new BorderLayout());
-		add(btnPanel, BorderLayout.NORTH);
+		add(controlPanel, BorderLayout.NORTH);
 		add(scrollPane, BorderLayout.CENTER);
 	}
 
