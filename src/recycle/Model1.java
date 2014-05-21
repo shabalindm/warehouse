@@ -1,4 +1,4 @@
-package dao;
+package recycle;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -7,6 +7,9 @@ import java.sql.Timestamp;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
+
+import dao.DAO;
+import dao.Item;
 
 public class Model1 extends MultiItemModel {
 

@@ -346,7 +346,17 @@ public class DAO {
 	}
 	
 	public Item getEmptyItem(){
-		return new Item(columnNames.length, PKPlace);
+		Item item = new Item(columnNames.length, PKPlace);
+		item.dao = this;		
+		return item;
+	}
+	
+	public int getFieldIndex(String name){
+		for (int i = 0 ; i <  columnNames.length; i++){
+			if (columnNames[i].equals(name))
+			return i;
+		}
+		throw new RuntimeException(" Не найден столбец " + name);	
 	}
 	
 	 public void close() {

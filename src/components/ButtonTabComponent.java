@@ -34,6 +34,7 @@ package components;
 import javax.swing.*;
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicButtonUI;
+
 import java.awt.*;
 import java.awt.event.*;
 
@@ -98,7 +99,11 @@ public class ButtonTabComponent extends JPanel {
 
         public void actionPerformed(ActionEvent e) {
             int i = pane.indexOfTabComponent(ButtonTabComponent.this);
-            removeTab(i);
+            try {
+				removeTab(i);
+			} catch (Exception e1) {
+				return;
+			}
         }
 
 		
@@ -148,7 +153,7 @@ public class ButtonTabComponent extends JPanel {
     /**
 	 * @param i
 	 */
-	public void removeTab(int i) {
+	public void removeTab(int i) throws Exception{
 		if (i != -1) {
             pane.remove(i);
         }

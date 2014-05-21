@@ -1,4 +1,4 @@
-package dao;
+package recycle;
 
 import gui.MainFrame;
 
@@ -32,12 +32,7 @@ import javax.swing.event.TableColumnModelListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
-import dao.TableEditPanel.EJTable;
-import dao.TableEditPanel.TableColumnWidhtListener;
-import dao.TableEditPanel.deleteBtmListener;
-import dao.TableEditPanel.insertBtmListener;
-import dao.TableEditPanel.refreshBtnistener;
-import dao.TableEditPanel.whereBtnListener;
+import dao.DAO;
 
 public abstract class AbstractTableEditPanel extends JPanel {
 	

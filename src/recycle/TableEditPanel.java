@@ -1,20 +1,16 @@
-package dao;
+package recycle;
 
+
+import gui.MainFrame;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -25,7 +21,6 @@ import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -39,31 +34,28 @@ import javax.swing.event.TableColumnModelListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
-public class TableViewer extends JFrame {
-	DateFormat f = new SimpleDateFormat("MM/dd/yy");
+import recycle.AbstractTableEditPanel.EJTable;
+import recycle.AbstractTableEditPanel.TableColumnWidhtListener;
+import recycle.AbstractTableEditPanel.deleteBtmListener;
+import recycle.AbstractTableEditPanel.insertBtmListener;
+import recycle.AbstractTableEditPanel.refreshBtnistener;
+import recycle.AbstractTableEditPanel.whereBtnListener;
+import dao.DAO;
 
-	boolean commited = true;
+public class TableEditPanel extends JPanel {
 	
-	private String whereCond = "";
-		
-	JTable tableView;	
-	JTable newRows;
-	ItemsTableModel tableViewModel;
-	ListOfArraysModel newRowsModel;
+	public AbstractItemsTableModel tableViewModel;
 	
-	JScrollPane upper = new JScrollPane();
-	JScrollPane  down = new JScrollPane() ;
+	private JTable tableView;	
+	private JTable newRows;
 	
-	JButton commitBtn;
-	JButton rollbackBtn;
-	JButton insertBtn; 
-	JButton deleteBtn;
+	private ListOfArraysModel newRowsModel;
+
+	private JButton insertBtn; 
+	private JButton deleteBtn;
 	private JButton refreshBtn;
-	private JButton setWhereBtn;
-	
-	InfoTextArea information;
+	private JButton setWhereBtn;	
 	private DAO dao;
-	
 	
 	/**Слушатель, который следит за изменением порядка и ширины стобцов верхней таблицы и повторяет эти операции для нижней таблицы.
 	 * В результате таблицы ведут себя как одна с разделителем */
@@ -100,25 +92,37 @@ public class TableViewer extends JFrame {
 		public void columnSelectionChanged(ListSelectionEvent e) {	}
 	}
 
-	 /**Конструктор*/
-	public TableViewer(DAO dao){	
-		this.dao = dao;		
-				
-		commitBtn = makeButton("Сохранить", null, new SaveBtnListener() );
+	/**Конструктор*/ 
+	 public TableEditPanel(AbstractItemsTableModel tableViewModel) {
+		this.tableViewModel = tableViewModel;
 		
-		rollbackBtn = makeButton("Откатить", null, new rollBackListener());	
+		initTables();		
 		
-		deleteBtn = makeButton("Удалить", null, new deleteBtmListener());
-		insertBtn = makeButton("Вставить", null, new insertBtmListener());
-		refreshBtn = makeButton("Обновить", null, new refreshBtnistener());
-		setWhereBtn = makeButton("Условия", null, new whereBtnListener());
+		JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+		initSplitPane(splitPane);
 		
-		information = new InfoTextArea ();
-		information.setEditable(false);
-		information.setLineWrap(true);
-		information.setRows(3);
+		JPanel btnPanel = new JPanel();
+		initBtnPanel(btnPanel);			
 		
-		initTables(dao);
+		setupPanel(btnPanel, splitPane);
+	}
+
+	/**
+	 * @param btnPanel
+	 * @param splitPane
+	 */
+	private void setupPanel(JPanel btnPanel, JSplitPane splitPane) {
+		setLayout(new BorderLayout());
+		add(btnPanel, BorderLayout.NORTH);
+		add(splitPane, BorderLayout.CENTER);
+	}
+
+	/**
+	 * @param splitPane
+	 */
+	private void initSplitPane(JSplitPane splitPane) {
+		final JScrollPane upper = new JScrollPane(tableView);
+		final JScrollPane  down = new JScrollPane(newRows) ;
 		
 		upper.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);		
 		
@@ -132,43 +136,43 @@ public class TableViewer extends JFrame {
 				
 			}
 		});
+		splitPane.setBottomComponent(down);
+		splitPane.setLeftComponent(upper);		
 		
-		JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, upper, down);
 		splitPane.setContinuousLayout(true);
 		splitPane.setOneTouchExpandable(true);
+		splitPane.setDividerLocation(400);	
 		
+	}
+
+	/**Создает кнопки и размещает их на панели
+	 * @param btnPanel Панель, на которой эти кнопки размещаются. В принципе, ее можно нарисовать как угодно;
+	 */
+	protected void initBtnPanel(JPanel btnPanel) {
+		deleteBtn = makeButton("Удалить", null, new deleteBtmListener());
+		insertBtn = makeButton("Вставить", null, new insertBtmListener());
+		refreshBtn = makeButton("Обновить", null, new refreshBtnistener());
+		setWhereBtn = makeButton("Условия", null, new whereBtnListener());
+		btnPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+		btnPanel.add(insertBtn);
+		btnPanel.add(deleteBtn);
+		btnPanel.add(refreshBtn);
+		btnPanel.add(setWhereBtn);
+	}
+
+	/**Создает таблицы таблицы JTable. Модель верхней, привязанной к базе, берется готовая. Mодель нижней - создается */	
+	private void initTables() {			
+		tableView = new JTable(tableViewModel);		
+		tableView.getColumnModel().addColumnModelListener( new TableColumnWidhtListener() );
+		tableView.setAutoCreateRowSorter(true);
+		tableView.setCellSelectionEnabled(true);	
+		tableView.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);	
 		
-		JScrollPane infopane =  new JScrollPane(information);
-		//infopane.setHorizontalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-		infopane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-			
-		JPanel btmPanel = new JPanel();
-		btmPanel.setLayout(new GridLayout(2,3));
-		btmPanel.add(commitBtn);
-		btmPanel.add(rollbackBtn);
-		btmPanel.add(insertBtn);
-		btmPanel.add(deleteBtn);
-		btmPanel.add(refreshBtn);
-		btmPanel.add(setWhereBtn);
-		
-		JPanel controlPanel = new JPanel();
-		infopane.setMaximumSize(new Dimension(10000, 40));
-		controlPanel.setLayout( new BorderLayout());
-		controlPanel.add(btmPanel, BorderLayout.WEST);
-		controlPanel.add(infopane, BorderLayout.CENTER);
-		
-		Container panel = getContentPane();
-		panel.setLayout(new BorderLayout());
-		panel.add(controlPanel, BorderLayout.NORTH);
-		panel.add(splitPane, BorderLayout.CENTER);
-		setSize(400, 600);
-	//	pack();
-		addWindowListener(new CloseOperationListener());
-		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-		
-		splitPane.setDividerLocation(400);
-		
-		
+		newRowsModel = new ListOfArraysModel(tableViewModel.getColumnCount());
+		newRows = new EJTable(newRowsModel);
+		newRows.setTableHeader(null);
+		newRows.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		newRows.setCellSelectionEnabled(true);	
 	}
 
 	
@@ -178,6 +182,7 @@ public class TableViewer extends JFrame {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
+		//	MainFrame.commited = false;
 			try{
 				int[] deleted = tableView.getSelectedRows();
 				tableViewModel.deleteRows(deleted);				
@@ -189,9 +194,9 @@ public class TableViewer extends JFrame {
 	
 	/** Слушатель кнопки вставки строк*/
 	class insertBtmListener implements ActionListener{
-
 		@Override
 		public void actionPerformed(ActionEvent e) {
+		//	MainFrame.commited = false;
 			List <String []> insertedRows = new ArrayList<>();
 			for (int i = 0; i < newRowsModel.getRowCount(); i++){
 				for( String s : newRowsModel.getRowAt(i)){ 
@@ -213,56 +218,8 @@ public class TableViewer extends JFrame {
 		}//actionPerformed
 	}//deleteBtmListener
 
-	/** Слушатель, проверяющий, зафиксированы ли изменения в базе и выводящий диалог с предложеним зафиксировать*/
-	class CloseOperationListener extends WindowAdapter{
-		public void windowClosing(WindowEvent e){
-			if (!commited){ 
-				int result = JOptionPane.showConfirmDialog((Component) null, "Сохранить измененные данные?",
-						"alert", JOptionPane.YES_NO_CANCEL_OPTION);
-				if (result == 0){
-					try {	dao.getConnection().commit();	}
-					catch (SQLException e1) {e1.printStackTrace();}
-					TableViewer.this.dispose();
-				}
-				else if (result == 1){
-					try {	dao.getConnection().rollback();}
-					catch (SQLException e1) {e1.printStackTrace();}
-					TableViewer.this.dispose();
-				}
-				else //result == 2
-					return;
-					 	
-			}
-			TableViewer.this.dispose();
 
-		}
-	}
-	
-	/** Слушатель кнопки "Сохранить"*/
-	class SaveBtnListener implements ActionListener  {			
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			try {
-				dao.getConnection().commit();
-				commited = true;
-			} catch (SQLException e1) {
-				e1.printStackTrace();
-				information.setText(e1.getMessage());
-			}	}}
-	
-	/** Слушатель кнопки "Откатить"*/
-	class rollBackListener implements ActionListener {			
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			try {
-				dao.getConnection().rollback();
-				commited = true;
-			} catch (SQLException e1) {
-				e1.printStackTrace();
-				information.setText(e1.getMessage());
-			} 	
-		initTables(dao);}}
-	
+
 	/** Слушатель кнопки "Условия"*/
 	 class whereBtnListener implements ActionListener {
 		
@@ -273,14 +230,13 @@ public class TableViewer extends JFrame {
 			 dialog.setLayout(new BorderLayout());
 			 final JTextArea input = new JTextArea(10, 50 );
 			 dialog.add(input, BorderLayout.CENTER );
-			 input.setText(whereCond);
+			 input.setText(tableViewModel.whereCond);
 			 input.setLineWrap(true);
 			 JButton okBtn = makeButton("OK", null, new ActionListener(){
 
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					whereCond = input.getText();
-					tableViewModel.setWhereCond(whereCond);
+					tableViewModel.whereCond = input.getText();
 					tableViewModel.updateCache();
 					dialog.dispose();			
 				}});
@@ -297,10 +253,10 @@ public class TableViewer extends JFrame {
 			 btnpanel.add(cancelBtn);
 			 dialog.add(btnpanel, BorderLayout.SOUTH);
 			 String example = "<html>Введите условия \"where\" и \"order by\" для sql запроса. Пример: <br> "
-			 		+ "WHERE "  + dao.getTablePK() + " &lt 10 <br> ORDER BY " + dao.getTablePK() + "</html>";
+			 		+ "WHERE "  + dao.getColumnNames()[0] + " &lt 10 <br> ORDER BY " + dao.getColumnNames()[0] + "</html>";
 			 dialog.add(new JLabel(example), BorderLayout.NORTH);
 			 
-			 dialog.setDefaultCloseOperation(EXIT_ON_CLOSE);
+			 dialog.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 			 dialog.pack();
 			 dialog.setAlwaysOnTop(true);
 			 dialog.setVisible(true);
@@ -320,40 +276,7 @@ public class TableViewer extends JFrame {
 	}
 
 	
-	/**Считывает данные из базы, создает на их основе новые таблицы и и размещает их во фрейме*/	
-	@SuppressWarnings("unchecked")
-	private void initTables(DAO dao) {		
-		tableViewModel = new ItemsTableModel(dao);
-		tableViewModel.setMessageListener(information);	
-		tableViewModel.updateCache();
-		
-		tableView = new JTable(tableViewModel);		
-		tableView.getColumnModel().addColumnModelListener( new TableColumnWidhtListener() );
-		tableView.setAutoCreateRowSorter(true);
-		tableView.setCellSelectionEnabled(true);
-		tableViewModel.f = f;
-//		for (int i = 0; i < tableViewModel.getColumnCount(); i++ ){
-//			if (java.util.Date.class.isAssignableFrom(tableViewModel.getDAO().getColumnClasses()[i]) )
-//				tableView.getColumnModel().getColumn(i).setCellRenderer(new DateRenderer(f));
-//			}
-		
-		tableView.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-		tableViewModel.addTableModelListener( new TableModelListener(){
-			@Override
-			public void tableChanged(TableModelEvent e) {
-				commited = false;
-			}});		
-		
-		
-		newRowsModel = new ListOfArraysModel(tableViewModel.getColumnCount());
-		newRows = new EJTable(newRowsModel);
-		newRows.setTableHeader(null);
-		newRows.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-		newRows.setCellSelectionEnabled(true);
-		
-		upper.setViewportView(tableView);
-		down.setViewportView(newRows);		
-	}
+	
 /** Это таблица, которая умеет вставлять данные и системного буфера при нажатии ctrl+V и удалять из по кнопке delete*/
 	class EJTable extends JTable implements KeyListener {
 		private ListOfArraysModel model;
@@ -398,5 +321,11 @@ public class TableViewer extends JFrame {
 		
 		return btn;
 	}
-}
 
+	public void close() {
+		tableViewModel.close();
+		
+	}
+
+
+}

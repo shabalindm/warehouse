@@ -6,26 +6,23 @@ import dao.DAO;
 import dao.Item;
 
 public class DetaledModel extends ItemsModel {
-	Object fKeyValue;
-	String fKeyName ;
-	public DetaledModel(DAO dao, Object fKeyValue, String fKeyName ) {
+	private Object fKValue;
+	private String fKName;
+	private int fKPos;
+	public DetaledModel(DAO dao, Object fKVavue, String fKName) {
 		super(dao);
-		this.fKeyValue =  fKeyValue;
-		this.fKeyName =fKeyName;
+		this.fKValue =  fKVavue;
+		this.fKName =fKName;
+		fKPos = dao.getFieldIndex(fKName);
+		setWhereCond(" where " + fKName + " = " + fKVavue);
 	}
+	
 
 	@Override
 	protected Item getEmptyRow() {
 		 
 		Item item = super.getEmptyRow();
-	//	item.setVal(fKeyPos, fKeyValue);
+	    item.setVal(fKPos, fKValue);
 		return item;
-	}
-
-	@Override
-	protected String getSQL() {
-		if (fKeyValue instanceof String)
-			fKeyValue = "'" +  fKeyValue +  "'" ;
-		return  null;// super.getSQL() + " where " + dao.getColumnNames()[fKeyPos] + " = " + fKeyValue;
 	}
 }

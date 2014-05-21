@@ -1,4 +1,4 @@
-package dao;
+package recycle;
 
 import javax.swing.JPanel;
 

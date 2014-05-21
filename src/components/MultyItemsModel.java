@@ -92,32 +92,6 @@ public abstract class MultyItemsModel extends AbstractItemsTableModel<Item[]>{
 	}	
 	
 	
-
-
-	@Override
-	protected String getSQL() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	void deleteFromDB(Item[] modelRow) throws SQLException {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	void insertIntoDB(Item[] modelRow) throws SQLException {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	void updateInDB(Item[] modelRow) throws SQLException {
-		// TODO Auto-generated method stub
-		
-	}
-
 	@Override
 	public String getColumnName(int column) {
 		// TODO Auto-generated method stub

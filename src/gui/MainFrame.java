@@ -46,6 +46,7 @@ import components.StateListener;
 import components.TableEditPanel;
 import components.UserCancelledOperationException;
 import components.WriteDataToDBException;
+import components.detaled.Panel3;
 import dao.DAO;
 
 
@@ -216,13 +217,9 @@ public class MainFrame extends JFrame {
 		// Добавляем ко вкладке крестик, переопределяем операцию закрытия
 		tabbedPane.setTabComponentAt(i, new ButtonTabComponent(tabbedPane){
 			@Override
-			public void removeTab(int i) {				
-				try {
-					tEpanel.close()	;
-				} catch (WriteDataToDBException | UserCancelledOperationException e) {
-					return;
-				}
-				super.removeTab(i);
+			public void removeTab(int i) throws Exception {				
+					tEpanel.close();
+					super.removeTab(i);
 				}
 		});
 	}
@@ -233,9 +230,15 @@ public class MainFrame extends JFrame {
 	/** Слушатель, проверяющий, зафиксированы ли изменения в базе и выводящий диалог с предложеним зафиксировать*/
 	class CloseOperationListener extends WindowAdapter{
 		public void windowClosing(WindowEvent e){
-			for(int i = 0; i < tabbedPane.getTabCount(); i++)
-				((ButtonTabComponent)tabbedPane.getTabComponentAt(i)).removeTab(i);
-			
+			int tabCount = tabbedPane.getTabCount();
+			while(tabbedPane.getTabCount()>0){
+				try {
+					tabbedPane.setSelectedIndex(0);
+					((ButtonTabComponent)tabbedPane.getTabComponentAt(0)).removeTab(0);
+				} catch (Exception e1) {
+					return;
+				} 
+			}
 			if (!commited){ 
 				int result = JOptionPane.showConfirmDialog((Component) null, "Зафиксировать все изменения?",
 						"", JOptionPane.YES_NO_CANCEL_OPTION);
@@ -295,7 +298,7 @@ public class MainFrame extends JFrame {
         menuBar.add(connectMenu);
         
  /*------------------------------------------------------------------------*/
-        JMenu insertMenu = new JMenu("Cводные таблицы");
+        JMenu insertMenu = new JMenu("Специальные таблицы");
         
         JMenuItem insertItem1 = new JMenuItem("Ввод спецификаций");        
         
@@ -320,8 +323,20 @@ public class MainFrame extends JFrame {
         	}           
         });
         
-        insertMenu.add(insertItem2);        
+ JMenuItem insertItem3 = new JMenuItem("Заявки");        
+        
+        insertItem3.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {      		
+        			Panel3 panel = new Panel3(conn);
+        			panel.model.setMessageListener(msgListener);
+        			panel.setStateListener(stateListener);
+        			putInTab("Заявки", panel, panel.model);      			
+        	}           
+        });
+        
         insertMenu.add(insertItem1);
+        insertMenu.add(insertItem2);
+        insertMenu.add(insertItem3);
         menuBar.add(insertMenu);        
         setJMenuBar(menuBar);
         

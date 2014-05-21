@@ -15,10 +15,10 @@ public class DetaledPanel extends TableEditPanel<Item> {
 	Item mainItem ; // Это запись из главной таблицы, которая будет отображаться в заголовке
 	JLabel header ;
 	
-	public DetaledPanel(DetaledModel model, String header) {
+	public DetaledPanel(DetaledModel model, Item mainItem) {
 		super(model);
 		this.mainItem = mainItem;
-		this.header.setText(header); 
+		this.header.setText(mainItem.toString()); 
 	}
 
 	@Override

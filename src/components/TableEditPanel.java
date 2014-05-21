@@ -178,14 +178,14 @@ public  class TableEditPanel<T> extends JPanel {
 			 dialog.setLayout(new BorderLayout());
 			 final JTextArea input = new JTextArea(10, 50 );
 			 dialog.add(input, BorderLayout.CENTER );
-			 input.setText(model.whereCond);
+			 input.setText(model.getWhereCond());
 			 input.selectAll();
 			 input.setLineWrap(true);
 			 JButton okBtn = makeButton("OK", null, new ActionListener(){
 
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					model.whereCond = input.getText();
+					model.setWhereCond(input.getText());
 					model.updateData();
 					dialog.dispose();			
 				}});
@@ -228,7 +228,7 @@ public  class TableEditPanel<T> extends JPanel {
 
 		if (!model.isSaved()){
 			int result = JOptionPane.showConfirmDialog(this, "Сохранить измененные данные?",
-					"", JOptionPane.YES_NO_CANCEL_OPTION);
+					this.getName(), JOptionPane.YES_NO_CANCEL_OPTION);
 			if (result == 0){ //сохранить
 				writeData();					
 			}	

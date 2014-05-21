@@ -34,7 +34,7 @@ public abstract class AbstractItemsTableModel<T> extends AbstractTableModel {
 	private Map<Integer, T> cache  = new TreeMap<>();
 	
 	protected int rowCount;
-	public String whereCond = "";
+	private String whereCond = "";
 	protected Connection conn;
 	private MessageListener listener;
 	private StateListener stateListener;	

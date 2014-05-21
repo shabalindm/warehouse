@@ -1,4 +1,4 @@
-package dao;
+package recycle;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -8,6 +8,9 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import dao.DAO;
+import dao.Item;
 
 public class ItemsTableModel extends AbstractItemsTableModel<Item>{
 

@@ -55,7 +55,7 @@ public class Model1 extends MultyItemsModel {
 
 	@Override
 	void deleteFromDB(Item[] items) throws SQLException {
-		daos[1].delete(items[1]);
+		items[1].delete();
 	}
 
 	@Override
@@ -65,13 +65,13 @@ public class Model1 extends MultyItemsModel {
 	}
 	@Override
 	void insertIntoDB(Item[] items) throws SQLException {
-			daos[1].storeNew2(items[1]);
+			items[1].storeNew2();
 		}
 		
 
 	@Override
 	void updateInDB(Item[] items) throws SQLException {
-		daos[1].store(items[1]);
+		items[1].store();
 		
 	}
 	

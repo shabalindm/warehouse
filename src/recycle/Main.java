@@ -1,4 +1,4 @@
-package dao;
+package recycle;
 
 
 import java.awt.Component;
@@ -12,6 +12,7 @@ import java.util.Locale;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
+import dao.DAO;
 import oracle.jdbc.OracleDriver;
 
 public class Main {

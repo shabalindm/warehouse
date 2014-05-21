@@ -103,19 +103,19 @@ public class ItemsModel extends AbstractItemsTableModel<Item>{
 
 	@Override
 	void deleteFromDB(Item item) throws SQLException {
-		dao.deleteByRowId(item);		
+		item.deleteByRowId();		
 	}
 
 	@Override
 	void insertIntoDB(Item item) throws SQLException {
-		dao.storeNew2(item);
+		item.storeNew2();
 		
 	}
 
 
 	@Override
 	void updateInDB(Item item) throws SQLException {
-		dao.storebyRowId(item);
+		item.storebyRowId();
 		
 	}
 

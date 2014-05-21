@@ -70,7 +70,7 @@ public class Model2 extends MultyItemsModel {
 
 	@Override
 	void deleteFromDB(Item[] items) throws SQLException {
-		daos[0].delete(items[0]);
+		items[0].delete();
 	}
 
 	@Override
@@ -80,7 +80,7 @@ public class Model2 extends MultyItemsModel {
 	}
 	@Override
 	void insertIntoDB(Item[] items) throws SQLException {
-			daos[0].storeNew2(items[0]);
+			items[0].storeNew2();
 		}
 		
 
@@ -90,16 +90,16 @@ public class Model2 extends MultyItemsModel {
 		Object trb_name = items[0].getVal(1);
 		if (trb_id !=null){
 			if (trb_name !=null)
-				daos[0].store(items[0]); 
+				items[0].store(); 
 			else
-				daos[0].delete(items[0]);
+				items[0].delete();
 		} else{
 			if (trb_name !=null)
-				daos[0].storeNew2(items[0]);			
+				items[0].storeNew2();			
 		}
 			
 		
-		daos[0].store(items[0]); 
+		items[0].store(); 
 		
 	}
 	

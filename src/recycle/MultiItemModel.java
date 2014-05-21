@@ -1,4 +1,4 @@
-package dao;
+package recycle;
 
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -6,7 +6,8 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
 
-import dao.AbstractItemsTableModel;
+import dao.DAO;
+import dao.Item;
 
 public abstract class MultiItemModel extends AbstractItemsTableModel<Item[]> {
 	protected DAO [] daos;
