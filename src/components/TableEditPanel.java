@@ -17,9 +17,7 @@ import javax.swing.JTable;
 import javax.swing.JTextArea;
 
 public  class TableEditPanel<T> extends JPanel {
-	
-	
-	
+		
 	public AbstractItemsTableModel<T> model;
 	protected JTable table;
 	JPanel controlPanel;

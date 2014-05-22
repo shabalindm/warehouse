@@ -54,9 +54,10 @@ import dao.Item;
 					Object fKValue = selectedItem.getId();					
 				 	try {
 						DAO dao = new  DAO(selectedItem.dao.getConnection(), "ТРЕБОВАНИЯ", "ТРЕБ_ID");
-						DetaledModel model = new DetaledModel(dao, fKValue, "НОМ_ЗАЯВКИ");
-						model.setMessageListener(model.getMessageListener());
-						DetaledPanel panel = new DetaledPanel(model, selectedItem);
+						DetaledModel dmodel = new DetaledModel(dao, fKValue, "НОМ_ЗАЯВКИ");
+						dmodel.setMessageListener(model.getMessageListener());
+						dmodel.setStateListener(model.getStateListener());
+						DetaledPanel panel = new DetaledPanel(dmodel, selectedItem);
 						TableWindow window = new TableWindow (panel, "Требования по заявке " + selectedItem.getId()); // Размещаем в новом окне
 						childWindows.add(window);
 					} catch (SQLException e1) {
@@ -81,9 +82,10 @@ import dao.Item;
 					Object fKValue = selectedItem.getId();					
 				 	try {
 						DAO dao = new  DAO(selectedItem.dao.getConnection(), "ДЕТАЛ_ЗАЯ", "ДЕТАЛ_ЗАЯ_ID");
-						DetaledModel model = new DetaledModel(dao, fKValue, "НОМ_ЗАЯВКИ");
-						model.setMessageListener(model.getMessageListener());
-						DetaledPanel panel = new DetaledPanel(model, selectedItem);
+						DetaledModel dmodel = new DetaledModel(dao, fKValue, "НОМ_ЗАЯВКИ");
+						dmodel.setMessageListener(model.getMessageListener());
+						dmodel.setStateListener(model.getStateListener());
+						DetaledPanel panel = new DetaledPanel(dmodel, selectedItem);
 						TableWindow window = new TableWindow (panel, "Детализация по заявке " + selectedItem.getId()); // Размещаем в новом окне
 						childWindows.add(window);
 					} catch (SQLException e1) {
@@ -108,18 +110,16 @@ import dao.Item;
 					Object fKValue = selectedItem.getId();					
 				 	try {
 						DAO dao = new  DAO(selectedItem.dao.getConnection(), "НАКЛАДНЫЕ", "НАКЛ_ID");
-						DetaledModel detmodel = new DetaledModel(dao, fKValue, "НОМ_ЗАЯВКИ");
-						detmodel.setMessageListener(model.getMessageListener());
-						DetaledPanel panel = new DetaledPanel(detmodel, selectedItem);
+						DetaledModel dmodel = new DetaledModel(dao, fKValue, "НОМ_ЗАЯВКИ");
+						dmodel.setMessageListener(model.getMessageListener());
+						dmodel.setStateListener(model.getStateListener());
+						DetaledPanel panel = new DetaledPanel(dmodel, selectedItem);
 						TableWindow window = new TableWindow (panel, "Накладные по заявке " + selectedItem.getId()); // Размещаем в новом окне
 						childWindows.add(window);
 					} catch (SQLException e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					}
-					//DetaledModel detaled = new DetaledModel(dao, fKValue, 3);
-					
-					// TableWindow window = new TableWindow();
 				}
 			});
 	
@@ -134,6 +134,8 @@ import dao.Item;
 		
 		
 	}
+	
+
 
 	@Override
 	public void close() throws WriteDataToDBException,

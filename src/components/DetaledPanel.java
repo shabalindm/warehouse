@@ -7,45 +7,39 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableModel;
 
 import dao.Item;
 
 public class DetaledPanel extends TableEditPanel<Item> {
 
 	Item mainItem ; // Это запись из главной таблицы, которая будет отображаться в заголовке
-	JTable header ;
+	
 	
 	public DetaledPanel(DetaledModel model, final Item mainItem) {
 		super(model);
 		this.mainItem = mainItem;
-		Object [] row = new Object[mainItem.size()];
-		AbstractTableModel aModel = new AbstractTableModel(){
 
-			@Override
-			public int getRowCount() {
-				// TODO Auto-generated method stub
-				return 1;
-			}
-
-			@Override
-			public int getColumnCount() {
-				// TODO Auto-generated method stub
-				return mainItem.size();
-			}
-
-			@Override
-			public Object getValueAt(int rowIndex, int columnIndex) {
-				// TODO Auto-generated method stub
-				return mainItem.getVal(columnIndex);
-			}};
+		// Собираем табличку из одной записи, которая показывает mainItem
+		Object[] fiels	= new Object[mainItem.size()];
+		for (int i = 0; i < fiels.length; i++)
+			fiels[i] = mainItem.getVal(i);
+		JTable tbl =  new JTable(new Object [][]{fiels}, mainItem.dao.getColumnNames());
+		tbl.setCellSelectionEnabled(false);
+		tbl.setEnabled(false);
+		JPanel header= new JPanel();// mainItem.dao.getColumnNames()); 
+		header.setLayout(new BorderLayout());
 		
-		header= new JTable(aModel);// mainItem.dao.getColumnNames()); 
-		header.setCellSelectionEnabled(false);
+		header.add(tbl.getTableHeader(), BorderLayout.NORTH);
+		header.add(tbl, BorderLayout.CENTER);
+		
+		//header.setCellSelectionEnabled(false);
 		
 		controlPanel.add(header, BorderLayout.CENTER);
-	}
+			}
 
 	@Override
 	protected void setupControlPanel(JPanel controlPanel) {
@@ -57,7 +51,9 @@ public class DetaledPanel extends TableEditPanel<Item> {
 		btmPanel.add(writeBtn);
 		btmPanel.add(clearBtn);		
 		controlPanel.setLayout(new BorderLayout());
-		controlPanel.add(btmPanel, BorderLayout.NORTH);					
+		controlPanel.add(btmPanel, BorderLayout.NORTH);	
+		
+
 	}
 	
 	

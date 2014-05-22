@@ -42,21 +42,22 @@ import components.Model1;
 import components.Model2;
 import components.Panel1;
 import components.Panel2;
+import components.Panel3;
+import components.Panel4;
 import components.StateListener;
 import components.TableEditPanel;
 import components.UserCancelledOperationException;
 import components.WriteDataToDBException;
-import components.detaled.Panel3;
 import dao.DAO;
 
 
 public class MainFrame extends JFrame {
-	public  boolean commited = true; 
+	public static  boolean commited = true; 
 	Connection conn;
 	
 	JList<String> tables;
 	JList<String> views ;
-	JTextArea info;
+	JTextArea info; 
 	JTabbedPane tabbedPane = new JTabbedPane();
 	
 	
@@ -65,11 +66,10 @@ public class MainFrame extends JFrame {
 		@Override
 		public void setText(String text) {
 			info.setText(text);
-			
 		}};	
 		
 	/** Слушатель состояния соединения.*/
-		StateListener stateListener = new StateListener() {		
+		static StateListener stateListener = new StateListener() {		
 		@Override
 		public void setState(boolean state) {
 			commited = state;			
@@ -334,9 +334,21 @@ public class MainFrame extends JFrame {
         	}           
         });
         
+JMenuItem insertItem4 = new JMenuItem("Накладные");        
+        
+        insertItem4.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {      		
+        			Panel4 panel = new Panel4(conn);
+        			panel.model.setMessageListener(msgListener);
+        			panel.setStateListener(stateListener);
+        			putInTab("Накладные", panel, panel.model);      			
+        	}           
+        });
+        
         insertMenu.add(insertItem1);
         insertMenu.add(insertItem2);
         insertMenu.add(insertItem3);
+        insertMenu.add(insertItem4);
         menuBar.add(insertMenu);        
         setJMenuBar(menuBar);
         

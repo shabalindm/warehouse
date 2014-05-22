@@ -60,6 +60,10 @@ public abstract class AbstractItemsTableModel<T> extends AbstractTableModel {
 		this.stateListener = stateListener;
 	}
 	
+	public StateListener getStateListener(){
+		return stateListener;
+	}
+	
 /**   ѕередает слушателю  (если он установлен) сообщение*/
 	protected void setState(boolean state){
 		if (stateListener != null)

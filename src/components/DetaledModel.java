@@ -9,12 +9,17 @@ public class DetaledModel extends ItemsModel {
 	private Object fKValue;
 	private String fKName;
 	private int fKPos;
-	public DetaledModel(DAO dao, Object fKVavue, String fKName) {
+	public DetaledModel(DAO dao, Object fKValue, String fKName) {
 		super(dao);
-		this.fKValue =  fKVavue;
+		this.fKValue =  fKValue;
+	
 		this.fKName =fKName;
 		fKPos = dao.getFieldIndex(fKName);
-		setWhereCond(" where " + fKName + " = " + fKVavue);
+		if ( fKName instanceof String)
+			setWhereCond(" where " + fKName + " = '" + fKValue + "'");
+		else
+			setWhereCond(" where " + fKName + " = " + fKValue);
+			
 	}
 	
 
