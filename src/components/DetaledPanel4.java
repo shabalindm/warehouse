@@ -2,7 +2,6 @@ package components;
 
 import gui.MainFrame;
 
-import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.Connection;
@@ -11,33 +10,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import dao.DAO;
 import dao.Item;
 
- public class Panel4 extends TableEditPanel<Item> {
-	 JButton detNaclBtn;
-	 
-	 Connection conn;
-	 List <TableWindow> childWindows = new ArrayList<>();
-	 
-	 private static ItemsModel makeModel(Connection conn){
-		 DAO dao = null;
-		 try {
-			dao = new DAO(conn, "Õ¿ À¿ƒÕ€≈", "Õ¿ À_ID");
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} 
-		 return new ItemsModel(dao);
-	 }
+public class DetaledPanel4 extends DetaledPanel{
+	JButton detNaclBtn;
 
-	public Panel4(Connection conn) {
-		super(makeModel( conn));
-		this.conn = conn;		
-			}
-
+	//Connection conn;
+	
+	List <TableWindow> childWindows = new ArrayList<>();
+	public DetaledPanel4(DetaledModel model, Item mainItem) {
+		super(model, mainItem);
+	}
 
 	
 	@Override
@@ -75,7 +61,7 @@ import dao.Item;
 	@Override
 	protected void setupControlPanel(JPanel controlPanel) {
 		super.setupControlPanel(controlPanel);
-		controlPanel.add(detNaclBtn); 
+		btmPanel.add(detNaclBtn); 
 		
 		
 		
@@ -93,8 +79,5 @@ import dao.Item;
 	
 	
 	
-	
-	
-	
-	
+
 }

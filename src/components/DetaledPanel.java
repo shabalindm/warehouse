@@ -17,6 +17,7 @@ import dao.Item;
 public class DetaledPanel extends TableEditPanel<Item> {
 
 	Item mainItem ; // Это запись из главной таблицы, которая будет отображаться в заголовке
+	JPanel btmPanel;
 	
 	
 	public DetaledPanel(DetaledModel model, final Item mainItem) {
@@ -43,7 +44,7 @@ public class DetaledPanel extends TableEditPanel<Item> {
 
 	@Override
 	protected void setupControlPanel(JPanel controlPanel) {
-		JPanel btmPanel = new JPanel();		
+		btmPanel = new JPanel();		
 		btmPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
 		btmPanel.add(insertBtn); 
 		btmPanel.add(deleteBtn);

@@ -1,5 +1,7 @@
 package components;
 
+import gui.MainFrame;
+
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -8,7 +10,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
@@ -34,7 +38,12 @@ import dao.Item;
 
 	public Panel3(Connection conn) {
 		super(makeModel( conn));
-		this.conn = conn;		
+		this.conn = conn;	
+		JComboBox<String> statusBox = new JComboBox<String>(new String[]{"ЗАПРОШЕН","ПОДТВЕРЖДЕН","ОПЛАЧЕН", "ЗАКРЫТ"});
+		 DefaultCellEditor statusEditor = new DefaultCellEditor(statusBox);
+		table.getColumnModel().getColumn(6).setCellEditor(statusEditor);
+	
+		
 			}
 
 
@@ -56,8 +65,8 @@ import dao.Item;
 						DAO dao = new  DAO(selectedItem.dao.getConnection(), "ТРЕБОВАНИЯ", "ТРЕБ_ID");
 						DetaledModel dmodel = new DetaledModel(dao, fKValue, "НОМ_ЗАЯВКИ");
 						dmodel.setMessageListener(model.getMessageListener());
-						dmodel.setStateListener(model.getStateListener());
 						DetaledPanel panel = new DetaledPanel(dmodel, selectedItem);
+						panel.setStateListener(MainFrame.stateListener);
 						TableWindow window = new TableWindow (panel, "Требования по заявке " + selectedItem.getId()); // Размещаем в новом окне
 						childWindows.add(window);
 					} catch (SQLException e1) {
@@ -84,8 +93,8 @@ import dao.Item;
 						DAO dao = new  DAO(selectedItem.dao.getConnection(), "ДЕТАЛ_ЗАЯ", "ДЕТАЛ_ЗАЯ_ID");
 						DetaledModel dmodel = new DetaledModel(dao, fKValue, "НОМ_ЗАЯВКИ");
 						dmodel.setMessageListener(model.getMessageListener());
-						dmodel.setStateListener(model.getStateListener());
 						DetaledPanel panel = new DetaledPanel(dmodel, selectedItem);
+						panel.setStateListener(MainFrame.stateListener);
 						TableWindow window = new TableWindow (panel, "Детализация по заявке " + selectedItem.getId()); // Размещаем в новом окне
 						childWindows.add(window);
 					} catch (SQLException e1) {
@@ -112,8 +121,8 @@ import dao.Item;
 						DAO dao = new  DAO(selectedItem.dao.getConnection(), "НАКЛАДНЫЕ", "НАКЛ_ID");
 						DetaledModel dmodel = new DetaledModel(dao, fKValue, "НОМ_ЗАЯВКИ");
 						dmodel.setMessageListener(model.getMessageListener());
-						dmodel.setStateListener(model.getStateListener());
-						DetaledPanel panel = new DetaledPanel(dmodel, selectedItem);
+						DetaledPanel panel = new DetaledPanel4(dmodel, selectedItem);
+						panel.setStateListener(MainFrame.stateListener);
 						TableWindow window = new TableWindow (panel, "Накладные по заявке " + selectedItem.getId()); // Размещаем в новом окне
 						childWindows.add(window);
 					} catch (SQLException e1) {

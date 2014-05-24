@@ -157,6 +157,29 @@ public class EJTable extends JTable implements KeyListener {
 
 	}
 	
+	public class StringCellEditor extends DefaultCellEditor {
+		public StringCellEditor(final JTextField textField) {
+			super(textField);
+			delegate = new EditorDelegate() {  
+				public void setValue(Object value) {  				
+					textField.setText((value != null) ? value.toString() : "");  
+				}  
+				public Object getCellEditorValue() {
+					Object result = textField.getText().trim();
+					
+//					if(aValue instanceof String){
+//						aValue = ((String)aValue).trim();
+//						if (aValue.equals(""))
+//							aValue = null;
+//					}	
+					return result;  
+				}  
+			};  
+			textField.addActionListener(delegate);
+		}		
+
+	}
+	
 	private void setRenderes() {
 		setDefaultRenderer(Object.class, new CellRenderer());
 		setDefaultRenderer(BigDecimal.class, new CellRenderer());

@@ -64,9 +64,6 @@ public abstract class MultyItemsModel extends AbstractItemsTableModel<Item[]>{
 		Item [] items = getRow(rowIndex);
 		Item item = items[index1(columnIndex)];
 		
-		if(aValue instanceof String && ((String)aValue).matches("\\s*"))
-			aValue = null;
-		
 		Object oldValue = getValueAt(rowIndex, columnIndex);			
 		if(aValue == null && aValue == oldValue ||  aValue != null && aValue.equals(oldValue) ){
 		// считаем что значение на самом деле не изменилось 

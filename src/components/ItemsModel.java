@@ -67,8 +67,7 @@ public class ItemsModel extends AbstractItemsTableModel<Item>{
 	@Override
 	public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
 		Item item = getRow(rowIndex);		
-		if(aValue instanceof String && ((String)aValue).matches("\\s*"))
-			aValue = null;
+			
 		
 		Object oldValue = getValueAt(rowIndex, columnIndex);			
 		if(aValue == null && aValue == oldValue ||  aValue != null && aValue.equals(oldValue) ){

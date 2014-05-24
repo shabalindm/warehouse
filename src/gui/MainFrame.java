@@ -44,6 +44,7 @@ import components.Panel1;
 import components.Panel2;
 import components.Panel3;
 import components.Panel4;
+import components.QueryEditor;
 import components.StateListener;
 import components.TableEditPanel;
 import components.UserCancelledOperationException;
@@ -69,7 +70,7 @@ public class MainFrame extends JFrame {
 		}};	
 		
 	/** Слушатель состояния соединения.*/
-		static StateListener stateListener = new StateListener() {		
+	 public	static StateListener stateListener = new StateListener() {		
 		@Override
 		public void setState(boolean state) {
 			commited = state;			
@@ -349,7 +350,24 @@ JMenuItem insertItem4 = new JMenuItem("Накладные");
         insertMenu.add(insertItem2);
         insertMenu.add(insertItem3);
         insertMenu.add(insertItem4);
-        menuBar.add(insertMenu);        
+        menuBar.add(insertMenu);  
+        
+ JMenu querryMenu = new JMenu("Редактор запросов");
+        
+        JMenuItem querryItem = new JMenuItem("Редактор запросов");        
+        
+        querryItem.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) { 
+        		QueryEditor panel = new QueryEditor(conn);
+        		int i = tabbedPane.getTabCount();
+        		Component c = tabbedPane.add("редактор", panel);
+        		tabbedPane.setSelectedComponent(c);
+        		tabbedPane.setTabComponentAt(i, new ButtonTabComponent(tabbedPane));     			
+        	}           
+        });
+        
+        querryMenu.add(querryItem);
+        menuBar.add(querryMenu); 
         setJMenuBar(menuBar);
         
     }
@@ -371,3 +389,4 @@ JMenuItem insertItem4 = new JMenuItem("Накладные");
 	}
 
 }
+
