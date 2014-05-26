@@ -36,10 +36,9 @@ import javax.swing.KeyStroke;
 
 import components.AbstractItemsTableModel;
 import components.ButtonTabComponent;
+import components.ItemNotEditingModel;
 import components.ItemsModel;
 import components.MessageListener;
-import components.Model1;
-import components.Model2;
 import components.Panel1;
 import components.Panel2;
 import components.Panel3;
@@ -48,6 +47,7 @@ import components.QueryEditor;
 import components.StateListener;
 import components.TableEditPanel;
 import components.UserCancelledOperationException;
+import components.WiewNotEditPanel;
 import components.WriteDataToDBException;
 import dao.DAO;
 
@@ -183,23 +183,41 @@ public class MainFrame extends JFrame {
 	        			return;
 	        		}
 	        	
-	        	//—оздаем панельку с таблицами и кнопками
+	        	//методом тыка, узанаем, обновл€емый ли вид
+	        	 boolean rowIdSupported;
 	        	try {
-	        		DAO dao = new DAO(conn, tableName, null);	
-	        		
-	        		// создаем модель основной таблицы
-	        		ItemsModel model = new ItemsModel(dao);
-	        		model.setMessageListener(msgListener);
-	        		
-	        		// создаем саму панельку
-	        		TableEditPanel  tEpanel = new TableEditPanel(model);
-	        		tEpanel.setStateListener(stateListener);
-	        		//размещаем ее в новой вкладке
-	        		putInTab(tableName, tEpanel, model);
- 		
-	        	} catch (SQLException e) {
-	        		e.printStackTrace();
-	        	}
+					conn.createStatement().executeQuery("select rowid from " + tableName+ " where 1<>1" );
+					  rowIdSupported = true;
+				} catch (SQLException e1) {
+					rowIdSupported = false;
+				}
+	        	
+	        		//—оздаем панельку с таблицами и кнопками
+	        		try {
+	        			DAO dao = new DAO(conn, tableName, null);	
+
+	        			
+	        			ItemsModel model;
+	        			TableEditPanel  tEpanel;
+	        			if (rowIdSupported){
+	        				 model = new ItemsModel(dao);
+	        				 tEpanel = new TableEditPanel(model);
+	        			}
+	        			else  {
+	        				model = new ItemNotEditingModel(dao);
+	        				tEpanel = new WiewNotEditPanel(model);
+	        			}
+	        			
+	        			model.setMessageListener(msgListener);	        			
+	        			tEpanel.setStateListener(stateListener);
+	        			
+	        			//размещаем панель в новой вкладке
+	        			putInTab(tableName, tEpanel, model);
+
+	        		} catch (SQLException e) {
+	        			e.printStackTrace();
+	        		}
+	        	
 	        } 
 	    }		
 	}
@@ -305,23 +323,22 @@ public class MainFrame extends JFrame {
         JMenuItem insertItem1 = new JMenuItem("¬вод спецификаций");        
         
         insertItem1.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent e) { 
-        			Model1 model = new Model1(conn);        		
-        			Panel1 panel = new Panel1(model);
-        			model.setMessageListener(msgListener);
+        	public void actionPerformed(ActionEvent e) {       		
+        			Panel1 panel = new Panel1(conn);
+        			panel.model.setMessageListener(msgListener);
         			panel.setStateListener(stateListener);
-        			putInTab("Cпецификации с комплектующими", panel, model);        			
+        			putInTab("Cпецификации с комплектующими", panel, panel.model);        			
         	}           
         });
         JMenuItem insertItem2 = new JMenuItem("¬вод требований");        
         
         insertItem2.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) { 
-        			Model2 model = new Model2(conn);        		
-        			Panel2 panel = new Panel2(model);
-        			model.setMessageListener(msgListener);
+        			      		
+        			Panel2 panel = new Panel2(conn);
+        			panel.model.setMessageListener(msgListener);
         			panel.setStateListener(stateListener);
-        			putInTab("¬вод требований", panel, model);        			
+        			putInTab("¬вод требований", panel, panel.model);        			
         	}           
         });
         
