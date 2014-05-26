@@ -31,7 +31,7 @@ public class Panel1 extends TableEditPanel<Item[]> {
 	public Panel1(Connection conn ) {
 		super(new Model1(conn));
 		for (int i = 0; i< model.getColumnCount(); i++){
-			if(((Model1) model).index1(i) != 1)
+			if(((Model1) model).index1(i) != 0)
 				table.getColumnModel().getColumn(i).setCellRenderer(new GreyCellRenderer());
 				
 		}
@@ -48,30 +48,19 @@ public class Panel1 extends TableEditPanel<Item[]> {
 	
 }
 
-class Model1 extends MultyItemsModel {
+class Model1 extends SimpleJoinModel {
 
 	
 	public Model1(Connection conn){
 		try {
 			this.conn = conn;		
 			daos = new DAO [2];
-			daos[0] = new DAO(conn, "КОМПЛЕКТУЮЩИЕ", "КОМПЛ_ID");
-			daos[1] = new DAO(conn, "СПЕЦИФИКАЦИЯ", "СПЕЦ_ID");
+			daos[0] = new DAO(conn, "СПЕЦИФИКАЦИЯ", "СПЕЦ_ID");
+			daos[1] = new DAO(conn, "КОМПЛЕКТУЮЩИЕ", "КОМПЛ_ID");
+			
 			columnsMap = new int[][]{
 					
-					{1,  0},
-					{1,  1},
-					{1,  2},
-					{1,  3},
-					{1,  4},
-					{1,  5},
-					{1,  6},
-					{1,  7},
-					{1,  8},
-					{1,  9},
-					{1,  10},
-					{1,  11},
-					
+					{0,  0},
 					{0,  1},
 					{0,  2},
 					{0,  3},
@@ -80,6 +69,18 @@ class Model1 extends MultyItemsModel {
 					{0,  6},
 					{0,  7},
 					{0,  8},
+					{0,  9},
+					{0,  10},
+					{0,  11},
+					
+					{1,  1},
+					{1,  2},
+					{1,  3},
+					{1,  4},
+					{1,  5},
+					{1,  6},
+					{1,  7},
+					{1,  8},
 
 			};
 		} catch (SQLException e) {
@@ -92,39 +93,16 @@ class Model1 extends MultyItemsModel {
 		return "Select * from КОМПЛЕКТУЮЩИЕ join СПЕЦИФИКАЦИЯ using (КОМПЛ_ID)"; 
 	}
 
-	@Override
-	void deleteFromDB(Item[] items) throws SQLException {
-		items[1].delete();
-	}
-
-	@Override
-	public boolean isCellEditable(int rowIndex, int columnIndex) {
-		if(columnIndex == 0 )
-			return	false;
-		
-		return true;
-	}
-	@Override
-	void insertIntoDB(Item[] items) throws SQLException {
-			items[1].storeNew2();
-		}
-		
-
-	@Override
-	void updateInDB(Item[] items) throws SQLException {
-		items[1].store();
-		
-	}
 	
 	/**Ищет в таблице коплектующих подходящую запись и обновляет поля, с ней связанные*/
 	public void find(int rowIndex){
 		Item[] items = getRow(rowIndex);	
 		String sqlFind;
-		if(items[1].getVal(9) instanceof BigDecimal) {//items[1].getVal(9) -  это Компл ID в записи из  таблицы комплектующих
-			 sqlFind = "SELECT * FROM КОМПЛЕКТУЮЩИЕ WHERE КОМПЛ_ID = " + items[1].getVal(9);
+		if(items[0].getVal(9) instanceof BigDecimal) {//items[0].getVal(9) -  это Компл ID в записи из  таблицы комплектующих
+			 sqlFind = "SELECT * FROM КОМПЛЕКТУЮЩИЕ WHERE КОМПЛ_ID = " + items[0].getVal(9);
 		} else{
-			String tu = (items[0].getVal(3) == null ) ? " is null " : " = '" + items[0].getVal(3).toString().trim().toUpperCase() + "'";
-			String mark = (items[0].getVal(4) == null ) ? " is null " : " = '" + items[0].getVal(4).toString().trim().toUpperCase() + "'";		
+			String tu = (items[1].getVal(3) == null ) ? " is null " : " = '" + items[1].getVal(3).toString().trim().toUpperCase() + "'";
+			String mark = (items[1].getVal(4) == null ) ? " is null " : " = '" + items[1].getVal(4).toString().trim().toUpperCase() + "'";		
 			sqlFind = "SELECT * FROM КОМПЛЕКТУЮЩИЕ WHERE ТУ " + tu + " AND МАРКА " + mark;
 		}
 		System.out.println(sqlFind);
@@ -132,8 +110,8 @@ class Model1 extends MultyItemsModel {
 			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery(sqlFind);
 			if (rs.next()){
-				items[1].setVal(9, rs.getObject("КОМПЛ_ID"));
-				items[0].pollFieldsFromResultSet(rs, daos[0].getColumnNames());
+				items[0].setVal(9, rs.getObject("КОМПЛ_ID"));
+				items[1].pollFieldsFromResultSet(rs, daos[1].getColumnNames());
 			}
 			fireTableRowsUpdated(rowIndex, rowIndex);
 			stmt.close();

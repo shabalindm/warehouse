@@ -36,7 +36,7 @@ public class Panel5 extends TableEditPanel<Item[]> {
 	public Panel5(Connection conn ) {
 		super(new Model5(conn));
 		for (int i = 0; i< model.getColumnCount(); i++){
-			if(((Model5) model).index1(i) != 2)
+			if(((Model5) model).index1(i) != 0)
 				table.getColumnModel().getColumn(i).setCellRenderer(new GreyCellRenderer());
 				
 		}
@@ -53,38 +53,27 @@ public class Panel5 extends TableEditPanel<Item[]> {
 	
 }
 
-class Model5 extends MultyItemsModel {
+class Model5 extends SimpleJoinModel {
 
 	
 	public Model5(Connection conn){
 		try {
 			this.conn = conn;		
 			daos = new DAO [3];
-			daos[0] = new DAO(conn, "йнлокейрсчыхе", "йнлок_ID");
+			daos[0] = new DAO(conn, "рпеанбюмхъ", "рпеа_ID");			
 			daos[1] = new DAO(conn, "йнлокейрсчыхе", "йнлок_ID");
-			daos[2] = new DAO(conn, "рпеанбюмхъ", "рпеа_ID");
+			daos[2] = new DAO(conn, "йнлокейрсчыхе", "йнлок_ID");
+			
 			columnsMap = new int[][]{
 					
-					{2,  0},//рпеа_ID     NOT NULL NUMBER         
-					{2,  1},//мнл_рпеа    NOT NULL VARCHAR2(40)   
-					{2,  2},//яоеж_ID     NOT NULL NUMBER         
-					{2,  3},//мнл_гюъбйх           VARCHAR2(40)   
-					{2,  4},//гюопньемн            NUMBER(7,3)    
-					{2,  5},//бшдюмн               NUMBER(7,3)  
-					{2,  6},//ID_гюопнь            NUMBER 
+					{0,  0},//рпеа_ID     NOT NULL NUMBER         
+					{0,  1},//мнл_рпеа    NOT NULL VARCHAR2(40)   
+					{0,  2},//яоеж_ID     NOT NULL NUMBER         
+					{0,  3},//мнл_гюъбйх           VARCHAR2(40)   
+					{0,  4},//гюопньемн            NUMBER(7,3)    
+					{0,  5},//бшдюмн               NUMBER(7,3)  
+					{0,  6},//ID_гюопнь            NUMBER 
 					     
-					//{0,  0},//йнлок_ID     NOT NULL NUMBER        
-					{0,  1},//цпсоою                VARCHAR2(100) 
-					{0,  2},//мюхлемнбюмхе          VARCHAR2(200) 
-					{0,  3},//рс                    VARCHAR2(100) 
-					{0,  4},//люпйю                 VARCHAR2(100) 
-					{0,  5},//ед_хглепемхъ          VARCHAR2(40)  
-					{0,  6},//мю_яйкюде             NUMBER(7,3)   
-					{0,  7},//йнло_хмтн             VARCHAR2(400) 
-					//{0,  8},//дюрю_йнло             DATE  
-					
-					{2,  7},//ID_бшдюм    NOT NULL NUMBER  
-					
 					//{1,  0},//йнлок_ID     NOT NULL NUMBER        
 					{1,  1},//цпсоою                VARCHAR2(100) 
 					{1,  2},//мюхлемнбюмхе          VARCHAR2(200) 
@@ -95,9 +84,21 @@ class Model5 extends MultyItemsModel {
 					{1,  7},//йнло_хмтн             VARCHAR2(400) 
 					//{1,  8},//дюрю_йнло             DATE  
 					
-					{2,  8},//дюрю_рпеа            DATE           
-					{2,  9},//дюрю_бшдювх          DATE           
-					{2,  10},//хмтн                 VARCHAR2(1000) 
+					{0,  7},//ID_бшдюм    NOT NULL NUMBER  					
+					
+					//{2,  0},//йнлок_ID     NOT NULL NUMBER        
+					{2,  1},//цпсоою                VARCHAR2(100) 
+					{2,  2},//мюхлемнбюмхе          VARCHAR2(200) 
+					{2,  3},//рс                    VARCHAR2(100) 
+					{2,  4},//люпйю                 VARCHAR2(100) 
+					{2,  5},//ед_хглепемхъ          VARCHAR2(40)  
+					{2,  6},//мю_яйкюде             NUMBER(7,3)   
+					{2,  7},//йнло_хмтн             VARCHAR2(400) 
+					//{2,  8},//дюрю_йнло             DATE  
+										
+					{0,  8},//дюрю_рпеа            DATE           
+					{0,  9},//дюрю_бшдювх          DATE           
+					{0,  10},//хмтн                 VARCHAR2(1000) 
 					
 					
 
@@ -142,39 +143,18 @@ class Model5 extends MultyItemsModel {
 				+ "JOIN ЙНЛОКЕЙРСЧЫХЕ  K2 on (ID_бшдюм = K2.йнлок_ID) "; 
 	}
 
-	@Override
-	void deleteFromDB(Item[] items) throws SQLException {
-		items[2].delete();
-	}
-
-	@Override
-	public boolean isCellEditable(int rowIndex, int columnIndex) {
-		if(columnIndex == 0 )
-			return	false;
-		return true;
-	}
-	@Override
-	void insertIntoDB(Item[] items) throws SQLException {
-			items[2].storeNew2();
-		}
-		
-
-	@Override
-	void updateInDB(Item[] items) throws SQLException {
-		items[2].store();
-		
-	}
 	
+		
 	/**хЫЕР Б РЮАКХЖЕ ЙНОКЕЙРСЧЫХУ ОНДУНДЪЫСЧ ГЮОХЯЭ Х НАМНБКЪЕР ОНКЪ, Я МЕИ ЯБЪГЮММШЕ*/
 	public void find(int rowIndex){
 		Item[] items = getRow(rowIndex);	
 		String sqlFind;
 		
-			if(items[2].getVal(6) instanceof BigDecimal) {//items[1].getVal(6) -  ЩРН ID ГЮОПНЬЕММНЦН 
-				sqlFind = "SELECT * FROM йнлокейрсчыхе WHERE йнлок_ID = " + items[2].getVal(6);
+			if(items[0].getVal(6) instanceof BigDecimal) {//items[0].getVal(6) -  ЩРН ID ГЮОПНЬЕММНЦН 
+				sqlFind = "SELECT * FROM йнлокейрсчыхе WHERE йнлок_ID = " + items[0].getVal(6);
 			} else{
-				String tu = (items[0].getVal(3) == null ) ? " is null " : " = '" + items[0].getVal(3).toString().trim().toUpperCase() + "'";
-				String mark = (items[0].getVal(4) == null ) ? " is null " : " = '" + items[0].getVal(4).toString().trim().toUpperCase() + "'";		
+				String tu = (items[1].getVal(3) == null ) ? " is null " : " = '" + items[1].getVal(3).toString().trim().toUpperCase() + "'";
+				String mark = (items[1].getVal(4) == null ) ? " is null " : " = '" + items[1].getVal(4).toString().trim().toUpperCase() + "'";		
 				sqlFind = "SELECT * FROM йнлокейрсчыхе WHERE рс " + tu + " AND люпйю " + mark;
 			}
 			System.out.println(sqlFind);
@@ -182,19 +162,19 @@ class Model5 extends MultyItemsModel {
 				Statement stmt = conn.createStatement();
 				ResultSet rs = stmt.executeQuery(sqlFind);
 				if (rs.next()){
-					items[2].setVal(6, rs.getObject("йнлок_ID"));
-					items[0].pollFieldsFromResultSet(rs, daos[0].getColumnNames());
+					items[0].setVal(6, rs.getObject("йнлок_ID"));
+					items[1].pollFieldsFromResultSet(rs, daos[1].getColumnNames());
 				}
 				fireTableRowsUpdated(rowIndex, rowIndex);
 				stmt.close();
 			} catch (Exception e){e.printStackTrace();}
 			
 			
-			if(items[2].getVal(7) instanceof BigDecimal) {//items[1].getVal(7) -  ЩРН ID БШДЮММНЦН
-				sqlFind = "SELECT * FROM йнлокейрсчыхе WHERE йнлок_ID = " + items[2].getVal(7);
+			if(items[0].getVal(7) instanceof BigDecimal) {//items[0].getVal(7) -  ЩРН ID БШДЮММНЦН
+				sqlFind = "SELECT * FROM йнлокейрсчыхе WHERE йнлок_ID = " + items[0].getVal(7);
 			} else{
-				String tu = (items[0].getVal(3) == null ) ? " is null " : " = '" + items[0].getVal(3).toString().trim().toUpperCase() + "'";
-				String mark = (items[0].getVal(4) == null ) ? " is null " : " = '" + items[0].getVal(4).toString().trim().toUpperCase() + "'";		
+				String tu = (items[2].getVal(3) == null ) ? " is null " : " = '" + items[2].getVal(3).toString().trim().toUpperCase() + "'";
+				String mark = (items[2].getVal(4) == null ) ? " is null " : " = '" + items[2].getVal(4).toString().trim().toUpperCase() + "'";		
 				sqlFind = "SELECT * FROM йнлокейрсчыхе WHERE рс " + tu + " AND люпйю " + mark;
 			}
 			System.out.println(sqlFind);
@@ -202,8 +182,8 @@ class Model5 extends MultyItemsModel {
 				Statement stmt = conn.createStatement();
 				ResultSet rs = stmt.executeQuery(sqlFind);
 				if (rs.next()){
-					items[2].setVal(7, rs.getObject("йнлок_ID"));
-					items[1].pollFieldsFromResultSet(rs, daos[1].getColumnNames());
+					items[0].setVal(7, rs.getObject("йнлок_ID"));
+					items[2].pollFieldsFromResultSet(rs, daos[2].getColumnNames());
 				}
 				fireTableRowsUpdated(rowIndex, rowIndex);
 				stmt.close();
@@ -217,9 +197,9 @@ class Model5 extends MultyItemsModel {
 		try {
 			rs.absolute(rowNumber+1);	
 			
-			row[0].pollFieldsFromResultSet(rs, "ID_гюопнь б_цпсоою б_мюхлемнбюмхе б_рс б_люпйю б_ед_хглепемхъ  б_мю_яйкюде б_йнло_хмтн б_дюрю_йнло".split("\\s+"));
+			row[2].pollFieldsFromResultSet(rs, "ID_гюопнь б_цпсоою б_мюхлемнбюмхе б_рс б_люпйю б_ед_хглепемхъ  б_мю_яйкюде б_йнло_хмтн б_дюрю_йнло".split("\\s+"));
 			row[1].pollFieldsFromResultSet(rs, "ID_гюопнь г_цпсоою г_мюхлемнбюмхе г_рс г_люпйю г_ед_хглепемхъ  г_мю_яйкюде г_йнло_хмтн г_дюрю_йнло".split("\\s+"));
-			row[2].pollFieldsFromResultSet(rs, daos[2].getColumnNames());	
+			row[0].pollFieldsFromResultSet(rs, daos[0].getColumnNames());	
 			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -232,9 +212,9 @@ class Model5 extends MultyItemsModel {
 	public String getColumnName(int column) {
 		// TODO Auto-generated method stub
 		String columnName = super.getColumnName(column);
-		if(index1(column) == 0  )
-			columnName = "г_"+columnName;
 		if(index1(column) == 1  )
+			columnName = "г_"+columnName;
+		if(index1(column) == 2  )
 			columnName = "б_"+columnName;
 		return columnName;
 	}

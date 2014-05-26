@@ -32,7 +32,7 @@ public class Panel7 extends TableEditPanel<Item[]> {
 	public Panel7(Connection conn ) {
 		super(new Model7(conn));
 		for (int i = 0; i< model.getColumnCount(); i++){
-			if(((Model7) model).index1(i) != 3)
+			if(((Model7) model).index1(i) != 0)
 				table.getColumnModel().getColumn(i).setCellRenderer(new GreyCellRenderer());
 				
 		}
@@ -49,40 +49,40 @@ public class Panel7 extends TableEditPanel<Item[]> {
 	
 }
 
-class Model7 extends MultyItemsModel {
+class Model7 extends SimpleJoinModel {
 
 	
 	public Model7(Connection conn){
 		try {
 			this.conn = conn;		
 			daos = new DAO [4];
-			daos[0] = new DAO(conn, "КОМПЛЕКТУЮЩИЕ", "КОМПЛ_ID");
-			daos[1] = new DAO(conn, "ЗАЯВКИ", "НОМ_ЗАЯВКИ");
-			daos[2] = new DAO(conn, "НАКЛАДНЫЕ", "НАКЛ_ID");
-			daos[3] = new DAO(conn, "ДЕТАЛ_НАКЛАДНЫХ", "Д_НАКЛ_ID");
+			daos[3] = new DAO(conn, "КОМПЛЕКТУЮЩИЕ", "КОМПЛ_ID");
+			daos[2] = new DAO(conn, "ЗАЯВКИ", "НОМ_ЗАЯВКИ");
+			daos[1] = new DAO(conn, "НАКЛАДНЫЕ", "НАКЛ_ID");
+			daos[0] = new DAO(conn, "ДЕТАЛ_НАКЛАДНЫХ", "Д_НАКЛ_ID");
 			
 			columnsMap = new int[][]{
 					
-					{3,  0},//Д_НАКЛ_ID NOT NULL NUMBER      
-					{3,  1},//НАКЛ_ID   NOT NULL NUMBER   
+					{0,  0},//Д_НАКЛ_ID NOT NULL NUMBER      
+					{0,  1},//НАКЛ_ID   NOT NULL NUMBER   
 					
-					{2,  2}, // номер накладной
+					{1,  2}, // номер накладной
 					
-					{1,  0}, // Ном_заявки
-					{1,  1}, // Дата заявки
-					{1,  6}, // Статус
+					{2,  0}, // Ном_заявки
+					{2,  1}, // Дата заявки
+					{2,  6}, // Статус
 					
-					{3,  2},//КОМПЛ_ID  NOT NULL NUMBER      
-					{3,  3}, //КОЛ_ВО             NUMBER(7,3) 
+					{0,  2},//КОМПЛ_ID  NOT NULL NUMBER      
+					{0,  3},//КОЛ_ВО             NUMBER(7,3) 
 					
-					{0,  1},
-					{0,  2},
-					{0,  3},
-					{0,  4},
-					{0,  5},
-					{0,  6},
-					{0,  7},
-					{0,  8},
+					{3,  1},
+					{3,  2},
+					{3,  3},
+					{3,  4},
+					{3,  5},
+					{3,  6},
+					{3,  7},
+					{3,  8},
 
 			};
 		} catch (SQLException e) {
@@ -96,38 +96,17 @@ class Model7 extends MultyItemsModel {
 				+ " join НАКЛАДНЫЕ using (накл_id) join  ЗАЯВКИ  using (ном_заявки)"; 
 	}
 
-	@Override
-	void deleteFromDB(Item[] items) throws SQLException {
-		items[3].delete();
-	}
-
-	@Override
-	public boolean isCellEditable(int rowIndex, int columnIndex) {
-		if(columnIndex == 0 )
-			return	false;
-		return true;
-	}
-	@Override
-	void insertIntoDB(Item[] items) throws SQLException {
-			items[3].storeNew2();
-		}
-		
-
-	@Override
-	void updateInDB(Item[] items) throws SQLException {
-		items[3].store();
-		
-	}
+	
 	
 	/**Ищет в таблице коплектующих подходящую запись и обновляет поля, с ней связанные*/
 	public void find(int rowIndex){
 		Item[] items = getRow(rowIndex);	
 		String sqlFind;
-		if(items[3].getVal(2) instanceof BigDecimal) {//items[3].getVal(2) -  это Компл ID в записи из  таблицы ДЕТАЛ_накладныз
-			 sqlFind = "SELECT * FROM КОМПЛЕКТУЮЩИЕ WHERE КОМПЛ_ID = " + items[3].getVal(2);
+		if(items[0].getVal(2) instanceof BigDecimal) {//items[0].getVal(2) -  это Компл ID в записи из  таблицы комплектующих
+			 sqlFind = "SELECT * FROM КОМПЛЕКТУЮЩИЕ WHERE КОМПЛ_ID = " + items[0].getVal(2);
 		} else{
-			String tu = (items[0].getVal(3) == null ) ? " is null " : " = '" + items[0].getVal(3).toString().trim().toUpperCase() + "'";
-			String mark = (items[0].getVal(4) == null ) ? " is null " : " = '" + items[0].getVal(4).toString().trim().toUpperCase() + "'";		
+			String tu = (items[3].getVal(3) == null ) ? " is null " : " = '" + items[3].getVal(3).toString().trim().toUpperCase() + "'";
+			String mark = (items[3].getVal(4) == null ) ? " is null " : " = '" + items[3].getVal(4).toString().trim().toUpperCase() + "'";		
 			sqlFind = "SELECT * FROM КОМПЛЕКТУЮЩИЕ WHERE ТУ " + tu + " AND МАРКА " + mark;
 		}
 		System.out.println(sqlFind);
@@ -135,15 +114,14 @@ class Model7 extends MultyItemsModel {
 			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery(sqlFind);
 			if (rs.next()){
-				items[3].setVal(2, rs.getObject("КОМПЛ_ID"));
-				items[0].pollFieldsFromResultSet(rs, daos[0].getColumnNames());
+				items[0].setVal(2, rs.getObject("КОМПЛ_ID"));
+				items[3].pollFieldsFromResultSet(rs, daos[3].getColumnNames());
 			}
 			fireTableRowsUpdated(rowIndex, rowIndex);
 			stmt.close();
 		} catch (Exception e){e.printStackTrace();}
 		
 	}
-
 
 }
 
