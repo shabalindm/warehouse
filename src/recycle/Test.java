@@ -18,7 +18,8 @@ public class Test {
 
 	public static void main(String[] args) {
 		
-		System.out.println("\n".matches("\\s*"));
+		System.out.println(("ID_гюопнь б_цпсоою б_мюхлемнбюмхе б_рс б_люпйю б_ед_хглепемхъ"
+				+ "  б_мю_яйкюде б_йнло_хмтн б_дюрю_йнло").split("\\s+").length);
 
 	}
 

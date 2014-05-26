@@ -19,7 +19,7 @@ import javax.swing.JTextArea;
 public  class TableEditPanel<T> extends JPanel {
 		
 	public AbstractItemsTableModel<T> model;
-	protected JTable table;
+	public JTable table;
 	JPanel controlPanel;
 
 	JButton insertBtn; 

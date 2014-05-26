@@ -1,5 +1,6 @@
 package components;
 
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.math.BigDecimal;
@@ -14,24 +15,24 @@ import javax.swing.JPanel;
 import dao.DAO;
 import dao.Item;
 
-/** Таблица для ввода и редактирования спецификаций*/
-public class Panel1 extends TableEditPanel<Item[]> {
+/** Таблица для ввода и редактирования детализаций по накладным*/
+public class Panel7 extends TableEditPanel<Item[]> {
 
 	private class SearchBtnListener implements ActionListener {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			for (int veiwRow : table.getSelectedRows()){
-				((Model1)model).find(table.convertRowIndexToModel(veiwRow));
+				((Model7)model).find(table.convertRowIndexToModel(veiwRow));
 			}
 
 		}
 	}
 
-	public Panel1(Connection conn ) {
-		super(new Model1(conn));
+	public Panel7(Connection conn ) {
+		super(new Model7(conn));
 		for (int i = 0; i< model.getColumnCount(); i++){
-			if(((Model1) model).index1(i) != 1)
+			if(((Model7) model).index1(i) != 3)
 				table.getColumnModel().getColumn(i).setCellRenderer(new GreyCellRenderer());
 				
 		}
@@ -48,29 +49,31 @@ public class Panel1 extends TableEditPanel<Item[]> {
 	
 }
 
-class Model1 extends MultyItemsModel {
+class Model7 extends MultyItemsModel {
 
 	
-	public Model1(Connection conn){
+	public Model7(Connection conn){
 		try {
 			this.conn = conn;		
-			daos = new DAO [2];
+			daos = new DAO [4];
 			daos[0] = new DAO(conn, "КОМПЛЕКТУЮЩИЕ", "КОМПЛ_ID");
-			daos[1] = new DAO(conn, "СПЕЦИФИКАЦИЯ", "СПЕЦ_ID");
+			daos[1] = new DAO(conn, "ЗАЯВКИ", "НОМ_ЗАЯВКИ");
+			daos[2] = new DAO(conn, "НАКЛАДНЫЕ", "НАКЛ_ID");
+			daos[3] = new DAO(conn, "ДЕТАЛ_НАКЛАДНЫХ", "Д_НАКЛ_ID");
+			
 			columnsMap = new int[][]{
 					
-					{1,  0},
-					{1,  1},
-					{1,  2},
-					{1,  3},
-					{1,  4},
-					{1,  5},
-					{1,  6},
-					{1,  7},
-					{1,  8},
-					{1,  9},
-					{1,  10},
-					{1,  11},
+					{3,  0},//Д_НАКЛ_ID NOT NULL NUMBER      
+					{3,  1},//НАКЛ_ID   NOT NULL NUMBER   
+					
+					{2,  2}, // номер накладной
+					
+					{1,  0}, // Ном_заявки
+					{1,  1}, // Дата заявки
+					{1,  6}, // Статус
+					
+					{3,  2},//КОМПЛ_ID  NOT NULL NUMBER      
+					{3,  3}, //КОЛ_ВО             NUMBER(7,3) 
 					
 					{0,  1},
 					{0,  2},
@@ -89,30 +92,30 @@ class Model1 extends MultyItemsModel {
 	
 	@Override
 	protected String getSQL() {
-		return "Select * from КОМПЛЕКТУЮЩИЕ join СПЕЦИФИКАЦИЯ using (КОМПЛ_ID)"; 
+		return "Select * from ДЕТАЛ_НАКЛАДНЫХ join КОМПЛЕКТУЮЩИЕ using (КОМПЛ_ID)"
+				+ " join НАКЛАДНЫЕ using (накл_id) join  ЗАЯВКИ  using (ном_заявки)"; 
 	}
 
 	@Override
 	void deleteFromDB(Item[] items) throws SQLException {
-		items[1].delete();
+		items[3].delete();
 	}
 
 	@Override
 	public boolean isCellEditable(int rowIndex, int columnIndex) {
 		if(columnIndex == 0 )
 			return	false;
-		
 		return true;
 	}
 	@Override
 	void insertIntoDB(Item[] items) throws SQLException {
-			items[1].storeNew2();
+			items[3].storeNew2();
 		}
 		
 
 	@Override
 	void updateInDB(Item[] items) throws SQLException {
-		items[1].store();
+		items[3].store();
 		
 	}
 	
@@ -120,8 +123,8 @@ class Model1 extends MultyItemsModel {
 	public void find(int rowIndex){
 		Item[] items = getRow(rowIndex);	
 		String sqlFind;
-		if(items[1].getVal(9) instanceof BigDecimal) {//items[1].getVal(9) -  это Компл ID в записи из  таблицы комплектующих
-			 sqlFind = "SELECT * FROM КОМПЛЕКТУЮЩИЕ WHERE КОМПЛ_ID = " + items[1].getVal(9);
+		if(items[3].getVal(2) instanceof BigDecimal) {//items[3].getVal(2) -  это Компл ID в записи из  таблицы ДЕТАЛ_накладныз
+			 sqlFind = "SELECT * FROM КОМПЛЕКТУЮЩИЕ WHERE КОМПЛ_ID = " + items[3].getVal(2);
 		} else{
 			String tu = (items[0].getVal(3) == null ) ? " is null " : " = '" + items[0].getVal(3).toString().trim().toUpperCase() + "'";
 			String mark = (items[0].getVal(4) == null ) ? " is null " : " = '" + items[0].getVal(4).toString().trim().toUpperCase() + "'";		
@@ -132,7 +135,7 @@ class Model1 extends MultyItemsModel {
 			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery(sqlFind);
 			if (rs.next()){
-				items[1].setVal(9, rs.getObject("КОМПЛ_ID"));
+				items[3].setVal(2, rs.getObject("КОМПЛ_ID"));
 				items[0].pollFieldsFromResultSet(rs, daos[0].getColumnNames());
 			}
 			fireTableRowsUpdated(rowIndex, rowIndex);
@@ -143,4 +146,5 @@ class Model1 extends MultyItemsModel {
 
 
 }
+
 

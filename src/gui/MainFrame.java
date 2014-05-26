@@ -43,6 +43,9 @@ import components.Panel1;
 import components.Panel2;
 import components.Panel3;
 import components.Panel4;
+import components.Panel5;
+import components.Panel6;
+import components.Panel7;
 import components.QueryEditor;
 import components.StateListener;
 import components.TableEditPanel;
@@ -364,10 +367,43 @@ JMenuItem insertItem4 = new JMenuItem("Ќакладные");
         	}           
         });
         
+JMenuItem insertItem5 = new JMenuItem("“ребовани€");        
+        
+        insertItem5.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {      		
+        			Panel5 panel = new Panel5(conn);
+        			panel.model.setMessageListener(msgListener);
+        			panel.setStateListener(stateListener);
+        			putInTab("требовани€", panel, panel.model);      			
+        	}           
+        });    
+JMenuItem insertItem6 = new JMenuItem("детализаци€ за€вок");        
+        
+        insertItem6.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {      		
+        			Panel6 panel = new Panel6(conn);
+        			panel.model.setMessageListener(msgListener);
+        			panel.setStateListener(stateListener);
+        			putInTab("детал_за€вок", panel, panel.model);      			
+        	}           
+        });  
+JMenuItem insertItem7 = new JMenuItem("детализаци€_накл");        
+        
+        insertItem7.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {      		
+        			Panel7 panel = new Panel7(conn);
+        			panel.model.setMessageListener(msgListener);
+        			panel.setStateListener(stateListener);
+        			putInTab("детализаци€_накл", panel, panel.model);      			
+        	}           
+        });  
         insertMenu.add(insertItem1);
         insertMenu.add(insertItem2);
         insertMenu.add(insertItem3);
         insertMenu.add(insertItem4);
+        insertMenu.add(insertItem5);
+        insertMenu.add(insertItem6);
+        insertMenu.add(insertItem7);
         menuBar.add(insertMenu);  
         
  JMenu querryMenu = new JMenu("–едактор запросов");

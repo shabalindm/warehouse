@@ -20,12 +20,12 @@ public abstract class MultyItemsModel extends AbstractItemsTableModel<Item[]>{
 	protected int [][] columnsMap;
 	
 	/**По номеру столбца находит индекс Item[], который представляет строку модели */
-	private int index1 (int columnIndex){
+	protected int index1 (int columnIndex){
 		return columnsMap[columnIndex][0];		
 	}
 	
 	/**По номеру столбца находит номер Item из массива Item[], который представляет строку модели */
-	private int index2 (int columnIndex){
+	protected int index2 (int columnIndex){
 		return columnsMap[columnIndex][1];		
 	}
 
