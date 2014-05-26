@@ -186,6 +186,7 @@ public class MainFrame extends JFrame {
 	        	//Создаем панельку с таблицами и кнопками
 	        	try {
 	        		DAO dao = new DAO(conn, tableName, null);	
+	        		
 	        		// создаем модель основной таблицы
 	        		ItemsModel model = new ItemsModel(dao);
 	        		model.setMessageListener(msgListener);

@@ -12,13 +12,14 @@ import java.util.List;
 
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import dao.DAO;
 import dao.Item;
-
+// оЮМЕКЭ Я ГЮЪБЙЮЛХ 
  public class Panel3 extends TableEditPanel<Item> {
 	 JButton trbBtn;
 	 JButton detaledBtn;
@@ -39,9 +40,13 @@ import dao.Item;
 	public Panel3(Connection conn) {
 		super(makeModel( conn));
 		this.conn = conn;	
-		JComboBox<String> statusBox = new JComboBox<String>(new String[]{"гюопньем","ондрбепфдем","нокювем", "гюйпшр"});
+		JComboBox<String> statusBox = new JComboBox<String>(new String[]{"янярюбкем", "гюопньем","ондрбепфдем","нокювем", "гюйпшр"});
 		 DefaultCellEditor statusEditor = new DefaultCellEditor(statusBox);
 		table.getColumnModel().getColumn(6).setCellEditor(statusEditor);
+		
+		JComboBox<String> restrictedBox = new JComboBox<String>(new String[]{null,"гюйпшрн" });
+		 DefaultCellEditor restrictedEditor = new DefaultCellEditor(restrictedBox);
+		table.getColumnModel().getColumn(13).setCellEditor(restrictedEditor);
 	
 		
 			}

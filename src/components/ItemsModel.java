@@ -66,10 +66,9 @@ public class ItemsModel extends AbstractItemsTableModel<Item>{
 	
 	@Override
 	public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-		Item item = getRow(rowIndex);		
-			
+		Item item = getRow(rowIndex);	
 		
-		Object oldValue = getValueAt(rowIndex, columnIndex);			
+		Object oldValue = getValueAt(rowIndex, columnIndex);
 		if(aValue == null && aValue == oldValue ||  aValue != null && aValue.equals(oldValue) ){
 		// считаем что значение на самом деле не изменилось 
 		} else

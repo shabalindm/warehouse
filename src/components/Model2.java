@@ -33,6 +33,7 @@ public class Model2 extends MultyItemsModel {
 					{0,  5},
 					{0,  6},
 					{0,  7},
+					{0,  8},
 					{0,  2}, // спецID
 					
 				//	{1,  0},
@@ -89,8 +90,10 @@ public class Model2 extends MultyItemsModel {
 		Object trb_id = items[0].getId();
 		Object trb_name = items[0].getVal(1);
 		if (trb_id !=null){
-			if (trb_name !=null)
+			if (trb_name !=null){
 				items[0].store(); 
+				
+				}
 			else
 				items[0].delete();
 		} else{
@@ -99,7 +102,7 @@ public class Model2 extends MultyItemsModel {
 		}
 			
 		
-		items[0].store(); 
+		//items[0].store(); 
 		
 	}
 	

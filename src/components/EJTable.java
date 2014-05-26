@@ -27,6 +27,7 @@ import javax.swing.table.TableRowSorter;
  /** Ёто таблица, котора€ умеет вставл€ть данные и системного буфера при нажатии ctrl+V и удал€ть из по кнопке delete*/
 public class EJTable extends JTable implements KeyListener {
 	DateFormat format = DateFormat.getDateTimeInstance();
+	DateFormat format2 = DateFormat.getDateInstance();
 	AbstractItemsTableModel<?> model;
 	public EJTable(AbstractItemsTableModel<?> model){
 		super(model);
@@ -93,15 +94,24 @@ public class EJTable extends JTable implements KeyListener {
 					for(int i = 0; i <words.length && startCol + i < getModel().getColumnCount(); i++ ){						
 						int modelCol = convertColumnIndexToModel(startCol +i);	
 						Object value = words[i].trim();
+						if (value.equals(""))
+							value = null;
+						
 						if (Date.class.isAssignableFrom(getModel().getColumnClass(modelCol))){
 							try{value = new Timestamp((format.parse((String) value)).getTime());}
-							catch(Exception e) {}							
+							catch(Exception e) {
+								try{value = new Timestamp((format2.parse((String) value)).getTime());}
+								catch(Exception e1) {}
+							}		
+								
 						} else if (BigDecimal.class.isAssignableFrom(getModel().getColumnClass(modelCol))) {
 							try {value = new BigDecimal((String) value);}
 							catch (Exception e){}
 						}						
 						getModel().setValueAt(value, modelRow, modelCol);							 
 					}					
+		
+					
 				}
 				model.fireTableRowsInserted(0, getModel().getRowCount()-1);
 			} 	
@@ -116,6 +126,7 @@ public class EJTable extends JTable implements KeyListener {
 	private void setEditors() {
 		setDefaultEditor(BigDecimal.class,  new BigDecimalCellEditor(new JTextField()));
 		setDefaultEditor(java.util.Date.class,  new DateCellEditor(new JTextField()));
+		setDefaultEditor(String.class,  new StringCellEditor(new JTextField()));
 	}
 
 	public class DateCellEditor extends DefaultCellEditor {
@@ -125,12 +136,24 @@ public class EJTable extends JTable implements KeyListener {
 				public void setValue(Object value) {  
 					if (value instanceof Date)
 						value = format.format(value);					
-					textField.setText((value != null) ? value.toString() : "");  
+					textField.setText((value != null) ? value.toString() : null);  
 				}  
 				public Object getCellEditorValue() {
-					Object result = textField.getText().trim();
-					try {result =  new Timestamp((format.parse((String) result)).getTime());}
-					catch (Exception e){}
+					Object result = textField.getText();
+					if (result == null)
+						return null;
+					else
+						result = ((String) result).trim();
+					
+					if (result.equals(""))
+						return null;
+					
+					try{result = new Timestamp((format.parse((String) result)).getTime());}
+					catch(Exception e) {
+						try{result = new Timestamp((format2.parse((String) result)).getTime());}
+						catch(Exception e1) {}
+					}	
+					
 					return result;  
 				}  
 			};  
@@ -143,10 +166,18 @@ public class EJTable extends JTable implements KeyListener {
 			super(textField);
 			delegate = new EditorDelegate() {  
 				public void setValue(Object value) {  				
-					textField.setText((value != null) ? value.toString() : "");  
+					textField.setText((value != null) ? value.toString() : null);  
 				}  
 				public Object getCellEditorValue() {
-					Object result = textField.getText().trim();
+					Object result = textField.getText();
+					if (result == null)
+						return null;
+					else 
+						result = ((String) result).trim();
+					
+					if (result.equals(""))
+						return null;
+					
 					try {result = new BigDecimal((String) result);}
 					catch (Exception e){}
 					return result;  
@@ -162,16 +193,18 @@ public class EJTable extends JTable implements KeyListener {
 			super(textField);
 			delegate = new EditorDelegate() {  
 				public void setValue(Object value) {  				
-					textField.setText((value != null) ? value.toString() : "");  
+					textField.setText((value != null) ? value.toString() : null);  
 				}  
 				public Object getCellEditorValue() {
-					Object result = textField.getText().trim();
+					Object result = textField.getText();
+					if (result == null)
+						return null;
+					else
+						result = ((String) result).trim();
 					
-//					if(aValue instanceof String){
-//						aValue = ((String)aValue).trim();
-//						if (aValue.equals(""))
-//							aValue = null;
-//					}	
+					if (result.equals(""))
+						return null;
+					
 					return result;  
 				}  
 			};  

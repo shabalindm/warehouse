@@ -43,7 +43,7 @@ import dao.Item;
 	@Override
 	protected void createBottons() {
 		super.createBottons();
-		detNaclBtn = makeButton("детазизация", null, new ActionListener() {
+		detNaclBtn = makeButton("детализация", null, new ActionListener() {
 				
 				@Override
 				public void actionPerformed(ActionEvent e) { 
