@@ -96,7 +96,7 @@ public class Panel2 extends TableEditPanel<Item[]> {
 	
 	@Override
 	protected String getSQL() {
-		return "select  *  from  йнлокейрсчыхе JOIN яоежхтхйюжхъ USING (йнлок_ID)  left join рПЕАНБЮМХЪ USING (яоеж_ID)"; 
+		return "select  *  from  йнлокейрсчыхе JOIN яоежхтхйюжхъ USING (йнлок_ID)  full join рПЕАНБЮМХЪ USING (яоеж_ID)"; 
 	}
 
 	@Override

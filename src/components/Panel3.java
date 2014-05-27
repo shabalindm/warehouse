@@ -40,7 +40,7 @@ import dao.Item;
 	public Panel3(Connection conn) {
 		super(makeModel( conn));
 		this.conn = conn;	
-		JComboBox<String> statusBox = new JComboBox<String>(new String[]{"янярюбкем", "гюопньем","ондрбепфдем","нокювем", "гюйпшр"});
+		JComboBox<String> statusBox = new JComboBox<String>(new String[]{"мнбши", "гюопньем","ондрбепфдем","нокювем", "гюйпшр"});
 		 DefaultCellEditor statusEditor = new DefaultCellEditor(statusBox);
 		table.getColumnModel().getColumn(6).setCellEditor(statusEditor);
 		
