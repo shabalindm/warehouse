@@ -65,22 +65,13 @@ import dao.Item;
 					if (selectedRow ==-1) // Ничего не выделено
 						return;
 					Item selectedItem = model.getRow(table.convertRowIndexToModel(selectedRow));
-					Object fKValue = selectedItem.getId();					
-				 	try {
-						DAO dao = new  DAO(selectedItem.dao.getConnection(), "ТРЕБОВАНИЯ", "ТРЕБ_ID");
-						DetaledModel dmodel = new DetaledModel(dao, fKValue, "НОМ_ЗАЯВКИ");
-						dmodel.setMessageListener(model.getMessageListener());
-						DetaledPanel panel = new DetaledPanel(dmodel, selectedItem);
-						panel.setStateListener(MainFrame.stateListener);
-						TableWindow window = new TableWindow (panel, "Требования по заявке " + selectedItem.getId()); // Размещаем в новом окне
-						childWindows.add(window);
-					} catch (SQLException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-					//DetaledModel detaled = new DetaledModel(dao, fKValue, 3);
+					Object fKValue = selectedItem.getId();	
 					
-					// TableWindow window = new TableWindow();
+					DPanel1 panel = new DPanel1(conn, selectedItem, fKValue, "НОМ_ЗАЯВКИ");
+					panel.model.setMessageListener(model.getMessageListener());
+					panel.setStateListener(MainFrame.stateListener);
+					TableWindow window = new TableWindow (panel, "Требования по заявке " + selectedItem.getId()); // Размещаем в новом окне
+					childWindows.add(window);
 				}
 			});
 		 
@@ -94,23 +85,13 @@ import dao.Item;
 						return;
 					Item selectedItem = model.getRow(table.convertRowIndexToModel(selectedRow));
 					Object fKValue = selectedItem.getId();					
-				 	try {
-						DAO dao = new  DAO(selectedItem.dao.getConnection(), "ДЕТАЛ_ЗАЯ", "ДЕТАЛ_ЗАЯ_ID");
-						DetaledModel dmodel = new DetaledModel(dao, fKValue, "НОМ_ЗАЯВКИ");
-						dmodel.setMessageListener(model.getMessageListener());
-						DetaledPanel panel = new DetaledPanel(dmodel, selectedItem);
+				 		DPanel2 panel = new DPanel2(conn, selectedItem, fKValue, "НОМ_ЗАЯВКИ" );
+						panel.model.setMessageListener(model.getMessageListener());
 						panel.setStateListener(MainFrame.stateListener);
 						TableWindow window = new TableWindow (panel, "Детализация по заявке " + selectedItem.getId()); // Размещаем в новом окне
 						childWindows.add(window);
-					} catch (SQLException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-					//DetaledModel detaled = new DetaledModel(dao, fKValue, 3);
 					
-					// TableWindow window = new TableWindow();
-				}
-			});
+			}});
 		 
 		 nakladBtn = makeButton("Накладные", null, new ActionListener() {
 				
@@ -122,18 +103,11 @@ import dao.Item;
 						return;
 					Item selectedItem = model.getRow(table.convertRowIndexToModel(selectedRow));
 					Object fKValue = selectedItem.getId();					
-				 	try {
-						DAO dao = new  DAO(selectedItem.dao.getConnection(), "НАКЛАДНЫЕ", "НАКЛ_ID");
-						DetaledModel dmodel = new DetaledModel(dao, fKValue, "НОМ_ЗАЯВКИ");
-						dmodel.setMessageListener(model.getMessageListener());
-						DetaledPanel panel = new DetaledPanel4(dmodel, selectedItem);
-						panel.setStateListener(MainFrame.stateListener);
-						TableWindow window = new TableWindow (panel, "Накладные по заявке " + selectedItem.getId()); // Размещаем в новом окне
-						childWindows.add(window);
-					} catch (SQLException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
+				 	DPanel3 panel = new DPanel3(conn, selectedItem, fKValue, "НОМ_ЗАЯВКИ");
+					panel.model.setMessageListener(model.getMessageListener());
+					panel.setStateListener(MainFrame.stateListener);
+					TableWindow window = new TableWindow (panel, "Накладные по заявке " + selectedItem.getId()); // Размещаем в новом окне
+					childWindows.add(window);
 				}
 			});
 	

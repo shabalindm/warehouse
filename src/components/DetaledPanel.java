@@ -13,22 +13,22 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 
 import dao.Item;
-
-public class DetaledPanel extends TableEditPanel<Item> {
+/**Базовый класс для панелей, открывающихся в качестеве детализации*/
+public class DetaledPanel<T> extends TableEditPanel<T> {
 
 	Item mainItem ; // Это запись из главной таблицы, которая будет отображаться в заголовке
 	JPanel btmPanel;
 	
 	
-	public DetaledPanel(DetaledModel model, final Item mainItem) {
+	public DetaledPanel(AbstractItemsTableModel model,  Item mainItem) {
 		super(model);
 		this.mainItem = mainItem;
 
 		// Собираем табличку из одной записи, которая показывает mainItem
-		Object[] fiels	= new Object[mainItem.size()];
-		for (int i = 0; i < fiels.length; i++)
-			fiels[i] = mainItem.getVal(i);
-		JTable tbl =  new JTable(new Object [][]{fiels}, mainItem.dao.getColumnNames());
+		Object[] fiedls	= new Object[mainItem.size()];
+		for (int i = 0; i < fiedls.length; i++)
+			fiedls[i] = mainItem.getVal(i);
+		JTable tbl =  new JTable(new Object [][]{fiedls}, mainItem.dao.getColumnNames());
 		tbl.setCellSelectionEnabled(false);
 		tbl.setEnabled(false);
 		JPanel header= new JPanel();// mainItem.dao.getColumnNames()); 

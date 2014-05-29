@@ -5,8 +5,11 @@ import gui.MainFrame;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,27 +19,19 @@ import javax.swing.JPanel;
 
 import dao.DAO;
 import dao.Item;
-
- public class Panel4 extends TableEditPanel<Item> {
+/**Ïàíåëü äëÿ ïğîñìîòğà íàêëàäíûõ ñ êíîïêîé äëÿ ïğîñìîòğà äåòàëèçàöèè*/
+ public class Panel4 extends TableEditPanel<Item[]> {
 	 JButton detNaclBtn;
+	 List<TableWindow> childWindows = new ArrayList<>();
 	 
-	 Connection conn;
-	 List <TableWindow> childWindows = new ArrayList<>();
-	 
-	 private static ItemsModel makeModel(Connection conn){
-		 DAO dao = null;
-		 try {
-			dao = new DAO(conn, "ÍÀÊËÀÄÍÛÅ", "ÍÀÊË_ID");
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} 
-		 return new ItemsModel(dao);
-	 }
-
-	public Panel4(Connection conn) {
-		super(makeModel( conn));
-		this.conn = conn;		
+	 public Panel4(Connection conn ) {
+			super(new Model4(conn));
+			for (int i = 0; i< model.getColumnCount(); i++){
+				if(((Model4) model).index1(i) != 0)
+					table.getColumnModel().getColumn(i).setCellRenderer(new GreyCellRenderer());
+					
 			}
+		}
 
 
 	
@@ -51,23 +46,15 @@ import dao.Item;
 					int selectedRow = table.getSelectedRow();
 					if (selectedRow ==-1) // Íè÷åãî íå âûäåëåíî
 						return;
-					Item selectedItem = model.getRow(table.convertRowIndexToModel(selectedRow));
+					Item selectedItem = model.getRow(table.convertRowIndexToModel(selectedRow))[0];
 					Object fKValue = selectedItem.getId();					
-				 	try {
-						DAO dao = new  DAO(selectedItem.dao.getConnection(), "ÄÅÒÀË_ÍÀÊËÀÄÍÛÕ", "Ä_ÍÀÊË_ID");
-						DetaledModel dmodel = new DetaledModel(dao, fKValue, "ÍÀÊË_ID");
-						dmodel.setMessageListener(model.getMessageListener());
-						DetaledPanel panel = new DetaledPanel(dmodel, selectedItem);
-						panel.setStateListener(MainFrame.stateListener);
-						TableWindow window = new TableWindow (panel, "äåòàëèçàöèÿ íàêëàäíûõ" + selectedItem.getId()); // Ğàçìåùàåì â íîâîì îêíå
-						childWindows.add(window);
-					} catch (SQLException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-					//DetaledModel detaled = new DetaledModel(dao, fKValue, 3);
+				 	DPanel4 panel = new DPanel4 (selectedItem.dao.getConnection(), selectedItem, fKValue, "ÍÀÊË_ID");
+					panel.model.setMessageListener(model.getMessageListener());
+					panel.setStateListener(MainFrame.stateListener);
+					TableWindow window = new TableWindow (panel, "äåòàëèçàöèÿ íàêëàäíûõ" + selectedItem.getId()); // Ğàçìåùàåì â íîâîì îêíå
+					childWindows.add(window);
 					
-					// TableWindow window = new TableWindow();
+					
 				}
 			});
 	}
@@ -92,9 +79,50 @@ import dao.Item;
 	}
 	
 	
-	
-	
-	
-	
-	
 }
+ 
+ class Model4 extends SimpleJoinModel {
+		public Model4(Connection conn){
+			try {
+				this.conn = conn;		
+				daos = new DAO [2];
+				daos[0] = new DAO(conn, "ÍÀÊËÀÄÍÛÅ", "ÍÀÊË_ID");
+				daos[1] = new DAO(conn, "ÇÀßÂÊÈ", "ÍÎÌ_ÇÀßÂÊÈ");
+				
+				columnsMap = new int[][]{
+						
+						{0,  0},//ÍÀÊË_ID      NOT NULL NUMBER 						
+						{0,  2},//ÍÎÌ_ÒÎÂ_ÍÀÊË          VARCHAR2(100) 
+						{0,  3},//ÄÒ_ÒÎÂ_ÍÀÊË           DATE          
+						{0,  4},//ÍÎÌ_ÑÔ                VARCHAR2(100) 
+						{0,  1},//ÍÎÌ_ÇÀßÂÊÈ   NOT NULL VARCHAR2(40)
+						
+						//{1,  0}, //ÍÎÌ_ÇÀßÂÊÈ  NOT NULL VARCHAR2(40)   
+						{1,  1}, //ÄÀÒÀ_ÇÀßÂÊÈ          DATE           
+						{1,  2}, //ÍÎÌ_Ñ×ÅÒÀ            VARCHAR2(40)   
+						{1,  3}, //ÄÒ_Ñ×ÅÒÀ             DATE           
+						{1,  4}, //ÏÎÑÒÀÂÙÈÊ            VARCHAR2(200)  
+						{1,  5}, //ÑÓÌÌÀ_Ñ×Ò            NUMBER(9,2)    
+						{1,  6}, //ÑÒÀÒÓÑ      NOT NULL VARCHAR2(40)   
+						{1,  7}, //ÄÒ_ÎÏËÀÒÛ            DATE           
+						{1,  8}, //ÑËÓÆÇ                VARCHAR2(40)   
+						{1,  9}, //ÑÈÑÒÅÌÀ              VARCHAR2(200)  
+						{1,  10}, //ÈÇÄÅËÈÅ              VARCHAR2(200)  
+						{1,  11}, //ÍÎÌ_ÇÀÊÀÇÀ           VARCHAR2(40)   
+						{1,  12}, //ÇÀß_ÈÍÔÎ             VARCHAR2(1000) 
+						{1,  13}, //ÇÀÏĞ_ÍÀ_ÈÇÌ          VARCHAR2(16)
+
+						
+				};
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		@Override
+		protected String getSQL() {
+			return "Select * from ÍÀÊËÀÄÍÛÅ join ÇÀßÂÊÈ using (ÍÎÌ_ÇÀßÂÊÈ)"; 
+		}
+
+	}
+
