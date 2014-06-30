@@ -1,0 +1,20 @@
+Команда для экспорта:
+{ адрес утилиты exp} system/{пароль администратора}      owner={имя пользователя - владельца таблиц}      file= {путь и имя файла}
+пример:
+C:\oraclexe\app\oracle\product\11.2.0\server\bin\exp   system/123      owner=anya      file=C:\oracle\123.dat
+
+запускаем ее из командной строки, копируем и нажимаем enter
+далее в sql_developer или  sqlPlus
+соединяемся как sys или system
+и выполняем следующие команды
+удаление пользователя, если надо
+drop user anya CASCADE;
+создаем его по новой
+create user anya identified by 123 quota unlimited on users; // anya - имя нового пользователя, 123 - пароль
+grant connect to anya ;
+alter user anya default tablespace users;
+
+Открываем командную строку, и выполняем команду
+{ адрес утилиты imp}   system/{пароль администратора}    file={путь и имя файла}    fromuser={ старое имя пользователя}    touser={ новое имя пользователя}
+
+C:\oraclexe\app\oracle\product\11.2.0\server\bin\imp   system/123   file=C:\oracle\123.dat    fromuser=anya    touser=anya 
